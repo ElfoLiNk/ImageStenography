@@ -13,8 +13,11 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    inputbitdialog.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    inputbitdialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    inputbitdialog.ui
