@@ -34,6 +34,10 @@ private slots:
 
     void on_actionInput_triggered();
 
+    void on_actionSave_triggered();
+
+    void on_actionSave_As_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -51,7 +55,6 @@ private:
     QString strippedName(const QString &fullFileName);
     bool writeFile(const QString &fileName);
     bool readFile(const QString &fileName);
-    QLabel* getImageLabel();
 
     QMenu *fileMenu;
 
@@ -68,7 +71,7 @@ private:
 
     InputBitDialog *inputBitDialog;
 
-    QImage *image;
+    QImage image;
 
 };
 

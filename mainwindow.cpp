@@ -1,5 +1,6 @@
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QBuffer>
 #include "inputbitdialog.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -52,6 +53,30 @@ bool MainWindow::loadFile(const QString &fileName)
     statusBar()->showMessage(tr("File loaded"), 2000);
     return true;
 }
+bool MainWindow::readFile(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
+                             tr("Cannot read file %1:\n%2.")
+                             .arg(file.fileName())
+                             .arg(file.errorString()));
+        return false;
+    }
+    QDataStream in(&file);
+    in.setVersion(QDataStream::Qt_5_1);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    while (!in.atEnd()){
+    in >> image;
+    }
+    QApplication::restoreOverrideCursor();
+    image = QImage(fileName);
+
+    ui->imageArea->setScaledContents(true);
+    ui->imageArea->setPixmap(QPixmap::fromImage(image));
+
+    return true;
+}
 
 bool MainWindow::save()
 {
@@ -73,40 +98,29 @@ bool MainWindow::saveFile(const QString &fileName)
 }
 bool MainWindow::writeFile(const QString &fileName)
 {
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly)) {
-        QMessageBox::warning(this, tr("Spreadsheet"),
-                             tr("Cannot write file %1:\n%2.")
-                             .arg(file.fileName())
-                             .arg(file.errorString()));
-        return false;
-    }
-    QDataStream out(&file);
-    out.setVersion(QDataStream::Qt_5_1);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    // out << Qimage
-    QApplication::restoreOverrideCursor();
-    return true;
+//    QFile file(fileName);
+//    if (!file.open(QIODevice::WriteOnly)) {
+//        QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
+//                             tr("Cannot write file %1:\n%2.")
+//                             .arg(file.fileName())
+//                             .arg(file.errorString()));
+//        return false;
+//    }
+//    QDataStream out(&file);
+//    out.setVersion(QDataStream::Qt_5_1);
+//    QApplication::setOverrideCursor(Qt::WaitCursor);
+//    out << image;
+//    QApplication::restoreOverrideCursor();
+
+
+//    return true;
+    return image.save(fileName);
 }
-bool MainWindow::readFile(const QString &fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(file.fileName())
-                             .arg(file.errorString()));
-        return false;
-    }
-    QImage image = QImage(fileName);
-    QLabel *myLabel = this->getImageLabel();
-    myLabel->setPixmap(QPixmap::fromImage(image));
-    return true;
-}
+
 bool MainWindow::saveAs()
 {
     QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("Save image"), ".",tr("Spreadsheet files (*.sp)"));
+                                                    tr("%1 - Save image").arg(QApplication::applicationName()), ".",tr("Portable Network Graphics (*.png)\n""Windows Bitmap(*.bmp)\n""Graphic Interchange Format(*.gif)\n""Joint Photographic Experts Group(*.jpg)\n""Joint Photographic Experts Group(*.jpeg)\n""Portable Bitmap (*.pbm)\n""Portable Graymap (*.pgm)\n""Portable Pixmap (*.ppm)\n""X11 Bitmap (*.xbm)\n""X11 Pixmap (*.xpm)"));
     if (fileName.isEmpty())
         return false;
     return saveFile(fileName);
@@ -145,16 +159,11 @@ QString MainWindow::strippedName(const QString &fullFileName)
     return QFileInfo(fullFileName).fileName();
 }
 
-QLabel* MainWindow::getImageLabel(){
-    QLabel *myLabel = ui->imageArea;
-    return myLabel;
-}
-
 void MainWindow::on_actionNew_triggered()
 {
     if (okToContinue()) {
-        //->clear();
-        //setCurrentFile("");
+        ui->imageArea->clear();
+        setCurrentFile("");
     }
 }
 void MainWindow::on_actionExit_triggered()
@@ -173,4 +182,14 @@ void MainWindow::on_actionInput_triggered()
         inputBitDialog->raise();
         inputBitDialog->activateWindow();
     }
+}
+
+void MainWindow::on_actionSave_triggered()
+{
+    save();
+}
+
+void MainWindow::on_actionSave_As_triggered()
+{
+    saveAs();
 }
