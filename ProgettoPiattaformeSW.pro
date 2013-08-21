@@ -14,7 +14,8 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    inputbitdialog.cpp
+    inputbitdialog.cpp \
+    imagefilter.cpp
 
 HEADERS  += mainwindow.h \
     inputbitdialog.h

@@ -1,7 +1,9 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QBuffer>
+
 #include "inputbitdialog.h"
+#include "imagefilter.cpp"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -12,7 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     inputBitDialog = 0;
-    setWindowIcon(QIcon(":/images/icon.png"));
+    //setWindowIcon(QIcon(":/images/icon.png"));
     setCurrentFile("");
     this->adjustSize();
 }
@@ -55,21 +57,19 @@ bool MainWindow::loadFile(const QString &fileName)
 }
 bool MainWindow::readFile(const QString &fileName)
 {
-    QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(file.fileName())
-                             .arg(file.errorString()));
-        return false;
-    }
-    QDataStream in(&file);
-    in.setVersion(QDataStream::Qt_5_1);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    while (!in.atEnd()){
-    in >> image;
-    }
-    QApplication::restoreOverrideCursor();
+    //    QFile file(fileName);
+    //    if (!file.open(QIODevice::ReadOnly)) {
+    //        QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
+    //                             tr("Cannot read file %1:\n%2.")
+    //                             .arg(file.fileName())
+    //                             .arg(file.errorString()));
+    //        return false;
+    //    }
+    //    QDataStream in(&file);
+    //    in.setVersion(QDataStream::Qt_5_1);
+    //    QApplication::setOverrideCursor(Qt::WaitCursor);
+    //    in >> image;
+    //    QApplication::restoreOverrideCursor();
     image = QImage(fileName);
 
     ui->imageArea->setScaledContents(true);
@@ -98,22 +98,22 @@ bool MainWindow::saveFile(const QString &fileName)
 }
 bool MainWindow::writeFile(const QString &fileName)
 {
-//    QFile file(fileName);
-//    if (!file.open(QIODevice::WriteOnly)) {
-//        QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
-//                             tr("Cannot write file %1:\n%2.")
-//                             .arg(file.fileName())
-//                             .arg(file.errorString()));
-//        return false;
-//    }
-//    QDataStream out(&file);
-//    out.setVersion(QDataStream::Qt_5_1);
-//    QApplication::setOverrideCursor(Qt::WaitCursor);
-//    out << image;
-//    QApplication::restoreOverrideCursor();
+    //    QFile file(fileName);
+    //    if (!file.open(QIODevice::WriteOnly)) {
+    //        QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
+    //                             tr("Cannot write file %1:\n%2.")
+    //                             .arg(file.fileName())
+    //                             .arg(file.errorString()));
+    //        return false;
+    //    }
+    //    QDataStream out(&file);
+    //    out.setVersion(QDataStream::Qt_5_1);
+    //    QApplication::setOverrideCursor(Qt::WaitCursor);
+    //    out << image;
+    //    QApplication::restoreOverrideCursor();
 
 
-//    return true;
+    //    return true;
     return image.save(fileName);
 }
 
@@ -159,6 +159,45 @@ QString MainWindow::strippedName(const QString &fullFileName)
     return QFileInfo(fullFileName).fileName();
 }
 
+QImage MainWindow::contrast(QImage& source, int factor)
+{
+    //contrast :new color = 128 + Contrast *( old color - 128)
+    if (factor < 0) return source;
+    if (factor > 20) return source;
+    double contrast = (100.0+factor)/100.0;
+    double red, green, blue;
+    int pixels = source.width() * source.height();
+    unsigned int *data = (unsigned int *)source.bits();
+    for (int i = 0; i < pixels; ++i) {
+        red= 128+ contrast*(qRed(data[i])-128);
+        red = (red < 0x00) ? 0x00 : (red > 0xff) ? 0xff : red;
+        green= 128+ contrast*(qGreen(data[i])-128);
+        green = (green < 0x00) ? 0x00 : (green > 0xff) ? 0xff : green;
+        blue= 128+ contrast*(qBlue(data[i])-128);
+        blue = (blue < 0x00) ? 0x00 : (blue > 0xff) ? 0xff : blue ;
+        data[i] = qRgba(red, green, blue, qAlpha(data[i]));
+    }
+    return source;
+}
+QImage MainWindow::brighten(QImage& source, int factor)
+{
+    if (factor < -255 || factor > 255) return source;
+    int red, green, blue;
+
+    int pixels = source.width() * source.height();
+    unsigned int *data = (unsigned int *)source.bits();
+    for (int i = 0; i < pixels; ++i) {
+        red= qRed(data[i])+ factor;
+        red = (red < 0x00) ? 0x00 : (red > 0xff) ? 0xff : red;
+        green= qGreen(data[i])+factor;
+        green = (green < 0x00) ? 0x00 : (green > 0xff) ? 0xff : green;
+        blue= qBlue(data[i])+factor;
+        blue = (blue < 0x00) ? 0x00 : (blue > 0xff) ? 0xff : blue ;
+        data[i] = qRgba(red, green, blue, qAlpha(data[i]));
+    }
+    return source;
+}
+
 void MainWindow::on_actionNew_triggered()
 {
     if (okToContinue()) {
@@ -192,4 +231,41 @@ void MainWindow::on_actionSave_triggered()
 void MainWindow::on_actionSave_As_triggered()
 {
     saveAs();
+}
+
+void MainWindow::on_horizontalSlider_valueChanged(int value)
+{
+    intvalue = value;
+    isContrast = true;
+    ui->pushButton->setEnabled(true);
+
+}
+
+void MainWindow::on_horizontalSlider_2_valueChanged(int value)
+{
+    intvalue = value;
+    isBrightness = true;
+    ui->pushButton->setEnabled(true);
+}
+
+void MainWindow::on_actionUndo_triggered()
+{
+    if(imageSnapshot.size() > 0){
+        image = imageSnapshot.at(imageSnapshot.size()-1);
+        imageSnapshot.removeLast();
+        ui->imageArea->setPixmap(QPixmap::fromImage(image));
+    }
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    imageSnapshot.append(image);
+    if(isContrast){
+        image = changeContrast(image, intvalue);
+    }
+    if(isBrightness){
+        image = changeBrightness(image, intvalue);
+    }
+
+    ui->imageArea->setPixmap(QPixmap::fromImage(image));
 }

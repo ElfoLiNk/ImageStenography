@@ -96,12 +96,22 @@
           <item>
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>Contrasto</string>
+             <string>Contrast</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="spinBox">
+            <property name="maximum">
+             <number>20</number>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QSlider" name="horizontalSlider">
+            <property name="maximum">
+             <number>20</number>
+            </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -114,12 +124,28 @@
           <item>
            <widget class="QLabel" name="label_2">
             <property name="text">
-             <string>TextLabel</string>
+             <string>Brightness</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="spinBox_2">
+            <property name="minimum">
+             <number>-255</number>
+            </property>
+            <property name="maximum">
+             <number>255</number>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QSlider" name="horizontalSlider_2">
+            <property name="minimum">
+             <number>-255</number>
+            </property>
+            <property name="maximum">
+             <number>255</number>
+            </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -153,6 +179,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Draw</string>
           </property>
@@ -190,7 +219,14 @@
     <addaction name="actionSave_As"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionUndo"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -252,8 +288,81 @@
     <string>Save As</string>
    </property>
   </action>
+  <action name="actionUndo">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>horizontalSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>spinBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>187</x>
+     <y>144</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>117</x>
+     <y>141</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>horizontalSlider_2</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>spinBox_2</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>210</x>
+     <y>210</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>117</x>
+     <y>213</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>horizontalSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>112</x>
+     <y>150</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>249</x>
+     <y>146</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinBox_2</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>horizontalSlider_2</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>126</x>
+     <y>202</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>276</x>
+     <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

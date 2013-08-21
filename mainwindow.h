@@ -22,10 +22,7 @@ private slots:
     void open();
     bool save();
     bool saveAs();
-    //    void about();
-    //    void updateStatusBar();
-    //    void imageModified();
-    
+
     void on_actionNew_triggered();
 
     void on_actionExit_triggered();
@@ -37,6 +34,14 @@ private slots:
     void on_actionSave_triggered();
 
     void on_actionSave_As_triggered();
+
+    void on_horizontalSlider_valueChanged(int value);
+
+    void on_horizontalSlider_2_valueChanged(int value);
+
+    void on_actionUndo_triggered();
+
+    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -55,6 +60,8 @@ private:
     QString strippedName(const QString &fullFileName);
     bool writeFile(const QString &fileName);
     bool readFile(const QString &fileName);
+    QImage contrast(QImage& source, int factor);
+    QImage brighten(QImage& source, int factor);
 
     QMenu *fileMenu;
 
@@ -72,6 +79,10 @@ private:
     InputBitDialog *inputBitDialog;
 
     QImage image;
+    QVector<QImage> imageSnapshot;
+    int intvalue;
+    bool isBrightness;
+    bool isContrast;
 
 };
 
