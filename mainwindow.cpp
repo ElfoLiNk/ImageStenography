@@ -235,7 +235,8 @@ void MainWindow::on_actionSave_As_triggered()
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)
 {
-    intvalue = value;
+
+    valueContrast = value;
     isContrast = true;
     ui->pushButton->setEnabled(true);
 
@@ -243,7 +244,7 @@ void MainWindow::on_horizontalSlider_valueChanged(int value)
 
 void MainWindow::on_horizontalSlider_2_valueChanged(int value)
 {
-    intvalue = value;
+    valueBrightness = value;
     isBrightness = true;
     ui->pushButton->setEnabled(true);
 }
@@ -261,11 +262,46 @@ void MainWindow::on_pushButton_clicked()
 {
     imageSnapshot.append(image);
     if(isContrast){
-        image = changeContrast(image, intvalue);
+        image = changeContrast(image, valueContrast);
     }
     if(isBrightness){
-        image = changeBrightness(image, intvalue);
+        image = changeBrightness(image, valueBrightness);
     }
 
     ui->imageArea->setPixmap(QPixmap::fromImage(image));
+    isBrightness = false;
+    isContrast = false;
+    ui->pushButton->setEnabled(false);
+}
+
+
+void MainWindow::on_radioButton_toggled(bool checked)
+{
+    if(checked){
+    //image = bitmap.fromImage(image).toImage().convertToFormat(QImage::Format_RGB888);
+    imageSnapshot.append(image);
+    image = image.convertToFormat(QImage::Format_Indexed8, Qt::AvoidDither);
+     ui->imageArea->setPixmap(QBitmap::fromImage(image));
+    }else on_actionUndo_triggered();
+}
+
+void MainWindow::on_radioButton_2_toggled(bool checked)
+{
+    if(checked){
+    //image = bitmap.fromImage(image).toImage().convertToFormat(QImage::Format_RGB888);
+
+    imageSnapshot.append(image);
+    image = image.convertToFormat(QImage::Format_RGB16);
+     ui->imageArea->setPixmap(QBitmap::fromImage(image));
+    }else on_actionUndo_triggered();
+}
+
+void MainWindow::on_radioButton_3_toggled(bool checked)
+{
+    if(checked){
+    //image = bitmap.fromImage(image).toImage().convertToFormat(QImage::Format_RGB888);
+    imageSnapshot.append(image);
+    image = image.convertToFormat(QImage::Format_RGB32);
+     ui->imageArea->setPixmap(QBitmap::fromImage(image));
+    }else on_actionUndo_triggered();
 }

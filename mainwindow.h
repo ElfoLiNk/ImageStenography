@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QLabel>
+#include <QBitmap>
 
 namespace Ui {
 class MainWindow;
@@ -43,6 +44,12 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void on_radioButton_toggled(bool checked);
+
+    void on_radioButton_2_toggled(bool checked);
+
+    void on_radioButton_3_toggled(bool checked);
+
 private:
     Ui::MainWindow *ui;
 
@@ -78,9 +85,11 @@ private:
 
     InputBitDialog *inputBitDialog;
 
+    QBitmap bitmap;
     QImage image;
     QVector<QImage> imageSnapshot;
-    int intvalue;
+    int valueContrast;
+    int valueBrightness;
     bool isBrightness;
     bool isContrast;
 
