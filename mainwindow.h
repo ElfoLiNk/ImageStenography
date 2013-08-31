@@ -9,8 +9,6 @@ namespace Ui {
 class MainWindow;
 }
 
-class InputBitDialog;
-
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -20,7 +18,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void open();
+    void open(int bitpixel);
     bool save();
     bool saveAs();
 
@@ -30,25 +28,33 @@ private slots:
 
     void on_actionFile_triggered();
 
-    void on_actionInput_triggered();
-
     void on_actionSave_triggered();
 
     void on_actionSave_As_triggered();
 
-    void on_horizontalSlider_valueChanged(int value);
+    void on_contrastSlider_valueChanged(int value);
 
-    void on_horizontalSlider_2_valueChanged(int value);
+    void on_brightnessSlider_valueChanged(int value);
 
     void on_actionUndo_triggered();
 
-    void on_pushButton_clicked();
+    void on_drawPushButton_clicked();
 
-    void on_radioButton_toggled(bool checked);
+//    void on_radioButton_toggled(bool checked);
 
-    void on_radioButton_2_toggled(bool checked);
+//    void on_radioButton_2_toggled(bool checked);
 
-    void on_radioButton_3_toggled(bool checked);
+//    void on_radioButton_3_toggled(bool checked);
+
+    void on_oneBitButton_toggled(bool checked);
+
+    void on_fourBitButton_toggled(bool checked);
+
+    void on_eightBitButton_toggled(bool checked);
+
+    void on_sixteenBitButton_toggled(bool checked);
+
+    void on_twentyfourBitButton_toggled(bool checked);
 
 private:
     Ui::MainWindow *ui;
@@ -61,12 +67,12 @@ private:
     void readSettings();
     void writeSettings();
     bool okToContinue();
-    bool loadFile(const QString &fileName);
+    bool loadFile(const QString &fileName, int bitpixel);
     bool saveFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
     bool writeFile(const QString &fileName);
-    bool readFile(const QString &fileName);
+    bool readFile(const QString &fileName, int bitpixel);
     QImage contrast(QImage& source, int factor);
     QImage brighten(QImage& source, int factor);
 
@@ -82,8 +88,6 @@ private:
     QAction *aboutQtAction;
 
     QString curFile;
-
-    InputBitDialog *inputBitDialog;
 
     QBitmap bitmap;
     QImage image;

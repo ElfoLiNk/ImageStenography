@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>533</width>
+    <width>608</width>
     <height>372</height>
    </rect>
   </property>
@@ -36,7 +36,7 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QGroupBox" name="groupBox">
+         <widget class="QGroupBox" name="bitGroupBox">
           <property name="minimumSize">
            <size>
             <width>461</width>
@@ -52,38 +52,48 @@
           <property name="title">
            <string>BitFormat</string>
           </property>
-          <widget class="QWidget" name="layoutWidget">
+          <widget class="QWidget" name="">
            <property name="geometry">
             <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>160</width>
-             <height>21</height>
+             <x>11</x>
+             <y>22</y>
+             <width>258</width>
+             <height>19</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <item>
-               <widget class="QRadioButton" name="radioButton">
-                <property name="text">
-                 <string>8 Bit</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="radioButton_2">
-                <property name="text">
-                 <string>16 Bit</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QRadioButton" name="oneBitButton">
+              <property name="text">
+               <string>1 Bit</string>
+              </property>
+             </widget>
             </item>
             <item>
-             <widget class="QRadioButton" name="radioButton_3">
+             <widget class="QRadioButton" name="fourBitButton">
               <property name="text">
-               <string>32 Bit</string>
+               <string>4 Bit</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="eightBitButton">
+              <property name="text">
+               <string>8 Bit</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="sixteenBitButton">
+              <property name="text">
+               <string>16 Bit</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="twentyfourBitButton">
+              <property name="text">
+               <string>24 Bit</string>
               </property>
              </widget>
             </item>
@@ -92,23 +102,23 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
-           <widget class="QLabel" name="label">
+           <widget class="QLabel" name="contrastLabel">
             <property name="text">
              <string>Contrast</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="spinBox">
+           <widget class="QSpinBox" name="contrastSpinBox">
             <property name="maximum">
              <number>100</number>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="horizontalSlider">
+           <widget class="QSlider" name="contrastSlider">
             <property name="maximum">
              <number>100</number>
             </property>
@@ -120,16 +130,16 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <widget class="QLabel" name="label_2">
+           <widget class="QLabel" name="brightnessLabel">
             <property name="text">
              <string>Brightness</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="spinBox_2">
+           <widget class="QSpinBox" name="brightnessSpinBox">
             <property name="minimum">
              <number>-255</number>
             </property>
@@ -139,7 +149,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="horizontalSlider_2">
+           <widget class="QSlider" name="brightnessSlider">
             <property name="minimum">
              <number>0</number>
             </property>
@@ -154,31 +164,49 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QCheckBox" name="checkBox_2">
+           <widget class="QLabel" name="heightLabel">
             <property name="text">
-             <string>CheckBox</string>
+             <string>Height</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox">
-            <property name="minimumSize">
-             <size>
-              <width>226</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>CheckBox</string>
+           <widget class="QSpinBox" name="heightSpinBox"/>
+          </item>
+          <item>
+           <widget class="QSlider" name="heightSlider">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>
          </layout>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="widthLabel">
+            <property name="text">
+             <string>Width</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="widthSpinBox"/>
+          </item>
+          <item>
+           <widget class="QSlider" name="widthSlider">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="drawPushButton">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -192,13 +220,18 @@
      </layout>
     </item>
    </layout>
+   <zorder></zorder>
+   <zorder>brightnessLabel</zorder>
+   <zorder>brightnessSpinBox</zorder>
+   <zorder>heightLabel</zorder>
+   <zorder>widthLabel</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>533</width>
+     <width>608</width>
      <height>21</height>
     </rect>
    </property>
@@ -301,14 +334,14 @@
  <resources/>
  <connections>
   <connection>
-   <sender>horizontalSlider</sender>
+   <sender>contrastSlider</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>spinBox</receiver>
+   <receiver>contrastSpinBox</receiver>
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>187</x>
-     <y>144</y>
+     <x>332</x>
+     <y>143</y>
     </hint>
     <hint type="destinationlabel">
      <x>117</x>
@@ -317,50 +350,114 @@
    </hints>
   </connection>
   <connection>
-   <sender>horizontalSlider_2</sender>
+   <sender>brightnessSlider</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>spinBox_2</receiver>
+   <receiver>brightnessSpinBox</receiver>
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>210</x>
-     <y>210</y>
+     <x>367</x>
+     <y>195</y>
     </hint>
     <hint type="destinationlabel">
-     <x>117</x>
-     <y>213</y>
+     <x>150</x>
+     <y>194</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>spinBox</sender>
+   <sender>contrastSpinBox</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>horizontalSlider</receiver>
+   <receiver>contrastSlider</receiver>
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>112</x>
-     <y>150</y>
+     <x>138</x>
+     <y>142</y>
     </hint>
     <hint type="destinationlabel">
-     <x>249</x>
-     <y>146</y>
+     <x>394</x>
+     <y>143</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>spinBox_2</sender>
+   <sender>brightnessSpinBox</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>horizontalSlider_2</receiver>
+   <receiver>brightnessSlider</receiver>
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>126</x>
-     <y>202</y>
+     <x>150</x>
+     <y>194</y>
     </hint>
     <hint type="destinationlabel">
-     <x>276</x>
-     <y>207</y>
+     <x>433</x>
+     <y>195</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>heightSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>heightSpinBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>184</x>
+     <y>237</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>101</x>
+     <y>237</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>widthSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>widthSpinBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>193</x>
+     <y>288</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>89</x>
+     <y>291</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>heightSpinBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>heightSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>111</x>
+     <y>228</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>236</x>
+     <y>237</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>widthSpinBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>widthSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>90</x>
+     <y>282</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>242</x>
+     <y>283</y>
     </hint>
    </hints>
   </connection>
