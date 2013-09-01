@@ -46,23 +46,37 @@ bool MainWindow::loadFile(const QString &fileName, int bitpixel)
 }
 bool MainWindow::readFile(const QString &fileName,int bitpixel)
 {
-     QFile file(fileName);
-        if (!file.open(QIODevice::ReadOnly)) {
-            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
-                                 tr("Cannot read file %1:\n%2.")
-                                 .arg(file.fileName())
-                                 .arg(file.errorString()));
-            return false;
-        }
-        QDataStream in(&file);
-        in.setVersion(QDataStream::Qt_5_1);
-        QApplication::setOverrideCursor(Qt::WaitCursor);
-        in >> image;
-        QApplication::restoreOverrideCursor();
-//    image = QImage(fileName);
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
+                             tr("Cannot read file %1:\n%2.")
+                             .arg(file.fileName())
+                             .arg(file.errorString()));
+        return false;
+    }
+    int bittoread = file.bytesAvailable() / 8;
 
-//    ui->imageArea->setScaledContents(true);
-//    ui->imageArea->setPixmap(QPixmap::fromImage(image));
+    QDataStream in(&file);
+    in.setVersion(QDataStream::Qt_5_1);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    switch(bitpixel){
+    case 1:
+        int height = sqrt(bittoread) + 1;
+        int width = height;
+        image = QImage(height, width, QImage::Format_Mono);
+
+
+        char *pixel;
+        in.readRawData(pixel,10);
+        break;
+    }
+
+    //in >> image;
+    QApplication::restoreOverrideCursor();
+    //    image = QImage(fileName);
+
+    //    ui->imageArea->setScaledContents(true);
+    //    ui->imageArea->setPixmap(QPixmap::fromImage(image));
 
     return true;
 }
