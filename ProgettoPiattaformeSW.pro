@@ -14,8 +14,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    imagefilter.cpp
+    imagefilter.cpp \
+    openfiledialog.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    openfiledialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    openfiledialog.ui

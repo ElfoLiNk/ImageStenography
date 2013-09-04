@@ -25,8 +25,17 @@
      <layout class="QHBoxLayout" name="horizontalLayout_6">
       <item>
        <widget class="QLabel" name="imageArea">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
         <property name="text">
-         <string>Image</string>
+         <string/>
         </property>
         <property name="scaledContents">
          <bool>false</bool>
@@ -52,7 +61,7 @@
           <property name="title">
            <string>BitFormat</string>
           </property>
-          <widget class="QWidget" name="">
+          <widget class="QWidget" name="layoutWidget">
            <property name="geometry">
             <rect>
              <x>11</x>
@@ -173,10 +182,23 @@
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="heightSpinBox"/>
+           <widget class="QSpinBox" name="heightSpinBox">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QSlider" name="heightSlider">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9999</number>
+            </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -194,10 +216,23 @@
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="widthSpinBox"/>
+           <widget class="QSpinBox" name="widthSpinBox">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QSlider" name="widthSlider">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9999</number>
+            </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -221,10 +256,6 @@
     </item>
    </layout>
    <zorder></zorder>
-   <zorder>brightnessLabel</zorder>
-   <zorder>brightnessSpinBox</zorder>
-   <zorder>heightLabel</zorder>
-   <zorder>widthLabel</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -239,15 +270,8 @@
     <property name="title">
      <string>File</string>
     </property>
-    <widget class="QMenu" name="menuOpen">
-     <property name="title">
-      <string>Open</string>
-     </property>
-     <addaction name="actionFile"/>
-     <addaction name="actionInput"/>
-    </widget>
     <addaction name="actionNew"/>
-    <addaction name="menuOpen"/>
+    <addaction name="actionFile"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
     <addaction name="actionExit"/>
@@ -302,7 +326,7 @@
   </action>
   <action name="actionFile">
    <property name="text">
-    <string>File</string>
+    <string>Open</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>

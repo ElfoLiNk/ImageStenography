@@ -4,10 +4,12 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QBitmap>
+#include <openfiledialog.h>
 
 namespace Ui {
 class MainWindow;
 }
+
 
 class MainWindow : public QMainWindow
 {
@@ -18,7 +20,9 @@ public:
     ~MainWindow();
 
 private slots:
-    void open(int bitpixel);
+    void setCurrentFile(const QString &fileName);
+    void setBitFormat(int bitformat);
+    void open();
     bool save();
     bool saveAs();
 
@@ -40,24 +44,11 @@ private slots:
 
     void on_drawPushButton_clicked();
 
-//    void on_radioButton_toggled(bool checked);
-
-//    void on_radioButton_2_toggled(bool checked);
-
-//    void on_radioButton_3_toggled(bool checked);
-
-    void on_oneBitButton_toggled(bool checked);
-
-    void on_fourBitButton_toggled(bool checked);
-
-    void on_eightBitButton_toggled(bool checked);
-
-    void on_sixteenBitButton_toggled(bool checked);
-
-    void on_twentyfourBitButton_toggled(bool checked);
 
 private:
     Ui::MainWindow *ui;
+
+    OpenFileDialog *openFileDialog;
 
     void createActions();
     void createMenus();
@@ -69,7 +60,6 @@ private:
     bool okToContinue();
     bool loadFile(const QString &fileName, int bitpixel);
     bool saveFile(const QString &fileName);
-    void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
     bool writeFile(const QString &fileName);
     bool readFile(const QString &fileName, int bitpixel);
@@ -96,6 +86,7 @@ private:
     int valueBrightness;
     bool isBrightness;
     bool isContrast;
+    int bitFormat;
 
 };
 

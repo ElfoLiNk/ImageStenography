@@ -1,10 +1,12 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QBuffer>
+#include <QBitArray>
 
 #include "imagefilter.cpp"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "openfiledialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -12,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    openFileDialog = 0;
     //setWindowIcon(QIcon(":/images/icon.png"));
     setCurrentFile("");
     this->adjustSize();
@@ -23,14 +26,11 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::open(int bitpixel)
+void MainWindow::open()
 {
     if (okToContinue()) {
-        QString fileName = QFileDialog::getOpenFileName(this,
-                                                        tr("Open Blob"), ".",
-                                                        tr("Blob (*.*)"));
-        if (!fileName.isEmpty()){
-            loadFile(fileName, bitpixel);}
+        if (!curFile.isEmpty()){
+            loadFile(curFile, bitFormat);}
     }
 }
 
@@ -54,7 +54,8 @@ bool MainWindow::readFile(const QString &fileName,int bitpixel)
                              .arg(file.errorString()));
         return false;
     }
-    int bittoread = file.bytesAvailable() / 8;
+
+    int bittoread = file.bytesAvailable() * 8;
 
     QDataStream in(&file);
     in.setVersion(QDataStream::Qt_5_1);
@@ -62,22 +63,33 @@ bool MainWindow::readFile(const QString &fileName,int bitpixel)
     switch(bitpixel){
     case 1:
         int height = sqrt(bittoread) + 1;
+        ui->heightSlider->setValue(height);
         int width = height;
-        image = QImage(height, width, QImage::Format_Mono);
-
-
-        char *pixel;
-        in.readRawData(pixel,10);
+        ui->widthSlider->setValue(width);
+        //image = QImage(height, width, QImage::Format_Mono);
+        const QByteArray blob = file.readAll();
+        //QBitArray bitblob = QVariant(blob).toBitArray();
+        QBitmap bitmap = QBitmap::fromData(QSize(height,width),(const uchar*)blob.data(),QImage::Format_Mono);
+        ui->imageArea->setPixmap(bitmap);
+        //        quint32 word = 0;
+//        quint8 byte;
+//        int i = 0;
+//        QBitArray bitmap(bittoread);
+//        while(!in.atEnd()){
+//            in >> byte;
+//            word = (word << 8) | byte;
+//            bitmap.setBit(i,word & 0x80000000);
+//            i++;
+//        }
         break;
     }
 
     //in >> image;
     QApplication::restoreOverrideCursor();
     //    image = QImage(fileName);
-
     //    ui->imageArea->setScaledContents(true);
-    //    ui->imageArea->setPixmap(QPixmap::fromImage(image));
 
+    //ui->imageArea->clear();
     return true;
 }
 
@@ -175,17 +187,15 @@ void MainWindow::on_actionExit_triggered()
 }
 void MainWindow::on_actionFile_triggered()
 {
-    open(32);
+    if (!openFileDialog) {
+        openFileDialog = new OpenFileDialog(this);
+        openFileDialog->show();
+        openFileDialog->raise();
+        openFileDialog->activateWindow();
+
+    }
 }
-//void MainWindow::on_actionInput_triggered()
-//{
-//    if (!inputBitDialog) {
-//        inputBitDialog = new InputBitDialog(this);
-//        inputBitDialog->show();
-//        inputBitDialog->raise();
-//        inputBitDialog->activateWindow();
-//    }
-//}
+
 
 void MainWindow::on_actionSave_triggered()
 {
@@ -221,7 +231,6 @@ void MainWindow::on_actionUndo_triggered()
         ui->imageArea->setPixmap(QPixmap::fromImage(image));
     }
 }
-
 void MainWindow::on_drawPushButton_clicked()
 {
     imageSnapshot.append(image);
@@ -239,36 +248,23 @@ void MainWindow::on_drawPushButton_clicked()
 }
 
 
-void MainWindow::on_oneBitButton_toggled(bool checked)
-{
-    if(checked){
-        open(1);
-    }else on_actionUndo_triggered();
-}
-
-void MainWindow::on_fourBitButton_toggled(bool checked)
-{  if(checked){
-        open(4);
-    }else on_actionUndo_triggered();
-}
-
-void MainWindow::on_eightBitButton_toggled(bool checked)
-{
-    if(checked){
-        open(8);
-    }else on_actionUndo_triggered();
-}
-
-void MainWindow::on_sixteenBitButton_toggled(bool checked)
-{
-    if(checked){
-        open(16);
-    }else on_actionUndo_triggered();
-}
-
-void MainWindow::on_twentyfourBitButton_toggled(bool checked)
-{
-    if(checked){
-        open(24);
-    }else on_actionUndo_triggered();
+void MainWindow::setBitFormat(int bitformat){
+    bitFormat = bitformat;
+    switch(bitformat){
+    case 1:
+        ui->oneBitButton->setChecked(true);
+        break;
+    case 4:
+        ui->oneBitButton->setChecked(true);
+        break;
+    case 8:
+        ui->oneBitButton->setChecked(true);
+        break;
+    case 16:
+        ui->oneBitButton->setChecked(true);
+        break;
+    case 24:
+        ui->oneBitButton->setChecked(true);
+        break;
+    }
 }
