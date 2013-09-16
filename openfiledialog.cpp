@@ -10,6 +10,7 @@ OpenFileDialog::OpenFileDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->buttonBox->setEnabled(false);
+    setWindowTitle(tr("OpenBlob - ProgettoPiattaformeSW"));
     connect(this,SIGNAL(openFile()),this->parent(),SLOT(open()));
     connect(this, SIGNAL(setFileName(const QString&)), this->parent(), SLOT(setCurrentFile(const QString&)) );
     connect(this, SIGNAL(fileBitFormat(const int&)), this->parent(), SLOT(setBitFormat(const int&)) );

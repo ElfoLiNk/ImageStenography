@@ -2,6 +2,10 @@
 #include <QFileDialog>
 #include <QBuffer>
 #include <QBitArray>
+#include <QPixmap>
+#include <QPainter>
+#include <QGridLayout>
+#include <QScrollBar>
 
 #include "imagefilter.cpp"
 #include "mainwindow.h"
@@ -13,11 +17,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
     openFileDialog = 0;
     //setWindowIcon(QIcon(":/images/icon.png"));
     setCurrentFile("");
     this->adjustSize();
+
+    ui->imageArea->setBackgroundRole(QPalette::Base);
+    ui->imageArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    ui->imageArea->setScaledContents(true);
+
+    ui->scrollArea->setBackgroundRole(QPalette::Dark);
 }
 
 MainWindow::~MainWindow()
@@ -30,13 +39,16 @@ void MainWindow::open()
 {
     if (okToContinue()) {
         if (!curFile.isEmpty()){
-            loadFile(curFile, bitFormat);}
+            if(loadFile(curFile)){
+                drawImage();
+            }
+        }
     }
 }
 
-bool MainWindow::loadFile(const QString &fileName, int bitpixel)
+bool MainWindow::loadFile(const QString &fileName)
 {
-    if (!this->readFile(fileName, bitpixel)) {
+    if (!this->readFile(fileName)) {
         statusBar()->showMessage(tr("Loading canceled"), 2000);
         return false;
     }
@@ -44,7 +56,7 @@ bool MainWindow::loadFile(const QString &fileName, int bitpixel)
     statusBar()->showMessage(tr("File loaded"), 2000);
     return true;
 }
-bool MainWindow::readFile(const QString &fileName,int bitpixel)
+bool MainWindow::readFile(const QString &fileName)
 {
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly)) {
@@ -55,41 +67,21 @@ bool MainWindow::readFile(const QString &fileName,int bitpixel)
         return false;
     }
 
-    int bittoread = file.bytesAvailable() * 8;
-
-    QDataStream in(&file);
-    in.setVersion(QDataStream::Qt_5_1);
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    switch(bitpixel){
-    case 1:
-        int height = sqrt(bittoread) + 1;
-        ui->heightSlider->setValue(height);
-        int width = height;
-        ui->widthSlider->setValue(width);
-        //image = QImage(height, width, QImage::Format_Mono);
-        const QByteArray blob = file.readAll();
-        //QBitArray bitblob = QVariant(blob).toBitArray();
-        QBitmap bitmap = QBitmap::fromData(QSize(height,width),(const uchar*)blob.data(),QImage::Format_Mono);
-        ui->imageArea->setPixmap(bitmap);
-        //        quint32 word = 0;
-//        quint8 byte;
-//        int i = 0;
-//        QBitArray bitmap(bittoread);
-//        while(!in.atEnd()){
-//            in >> byte;
-//            word = (word << 8) | byte;
-//            bitmap.setBit(i,word & 0x80000000);
-//            i++;
-//        }
-        break;
-    }
-
-    //in >> image;
+    blob = file.readAll();
     QApplication::restoreOverrideCursor();
-    //    image = QImage(fileName);
-    //    ui->imageArea->setScaledContents(true);
 
-    //ui->imageArea->clear();
+    //        quint32 word = 0;
+    //        quint8 byte;
+    //        int i = 0;
+    //        QBitArray bitmap(bittoread);
+    //        while(!in.atEnd()){
+    //            in >> byte;
+    //            word = (word << 8) | byte;
+    //            bitmap.setBit(i,word & 0x80000000);
+    //            i++;
+    //        }
+
     return true;
 }
 
@@ -174,13 +166,7 @@ QString MainWindow::strippedName(const QString &fullFileName)
     return QFileInfo(fullFileName).fileName();
 }
 
-void MainWindow::on_actionNew_triggered()
-{
-    if (okToContinue()) {
-        ui->imageArea->clear();
-        setCurrentFile("");
-    }
-}
+
 void MainWindow::on_actionExit_triggered()
 {
     close();
@@ -194,6 +180,7 @@ void MainWindow::on_actionFile_triggered()
         openFileDialog->activateWindow();
 
     }
+    openFileDialog = 0;
 }
 
 
@@ -240,8 +227,7 @@ void MainWindow::on_drawPushButton_clicked()
     if(isBrightness){
         image = changeBrightness(image, valueBrightness);
     }
-
-    ui->imageArea->setPixmap(QPixmap::fromImage(image));
+    drawImage();
     isBrightness = false;
     isContrast = false;
     ui->drawPushButton->setEnabled(false);
@@ -267,4 +253,152 @@ void MainWindow::setBitFormat(int bitformat){
         ui->oneBitButton->setChecked(true);
         break;
     }
+}
+
+void MainWindow::paintEvent(QPaintEvent *paint){
+    QPainter painter(this);
+
+
+
+}
+
+void MainWindow::drawImage(){
+    switch(bitFormat){
+    case 1:
+    {
+        height = sqrt(blob.size()*8) + 1;
+        ui->heightSlider->setValue(height);
+        width = height;
+        ui->widthSlider->setValue(width);
+        ui->imageArea->resize(width,height);
+        bitmap = QBitmap::fromData(QSize(height,width),(const uchar*)blob.data(),QImage::Format_Mono);
+        ui->imageArea->setPixmap(bitmap);
+        break;
+    }
+    case 4:
+    {
+        height = sqrt(blob.size()*8)/4 + 1;
+        ui->heightSlider->setValue(height);
+        width = height;
+        ui->widthSlider->setValue(width);
+        ui->imageArea->resize(width,height);
+        ui->imageArea->setPixmap(pixmap);
+
+        break;
+    }
+    case 8:
+    {
+        height = sqrt(blob.size()) + 1;
+        ui->heightSlider->setValue(height);
+        width = height;
+        ui->widthSlider->setValue(width);
+        pixmap.loadFromData(blob,(const char*)3,Qt::AutoColor);
+        ui->imageArea->setPixmap(pixmap);
+        break;
+    }
+    case 16:
+    {
+        height = sqrt(blob.size()*8)/16 + 1;
+        ui->heightSlider->setValue(height);
+        width = height;
+        ui->widthSlider->setValue(width);
+        ui->imageArea->setPixmap(pixmap);
+        break;
+    }
+    case 24:
+    {
+        height = sqrt(blob.size()*8)/24 + 1;
+        ui->heightSlider->setValue(height);
+        width = height;
+        ui->widthSlider->setValue(width);
+        ui->imageArea->setPixmap(pixmap);
+        break;
+    }
+    default:
+        break;
+    }
+
+    scaleFactor = 1.0;
+
+    ui->actionFit_To_Window->setEnabled(true);
+    updateActions();
+
+    if (!ui->actionFit_To_Window->isChecked())
+        ui->imageArea->adjustSize();
+
+}
+
+
+void MainWindow::updateActions()
+{
+    ui->actionZoomIn->setEnabled(!ui->actionFit_To_Window->isChecked());
+    ui->actionZoomOut->setEnabled(!ui->actionFit_To_Window->isChecked());
+    ui->actionNormal_Size->setEnabled(!ui->actionFit_To_Window->isChecked());
+}
+
+
+void MainWindow::scaleImage(double factor)
+
+{
+    Q_ASSERT(ui->imageArea->pixmap());
+    scaleFactor *= factor;
+    ui->imageArea->resize(scaleFactor * ui->imageArea->pixmap()->size());
+
+    adjustScrollBar(ui->scrollArea->horizontalScrollBar(), factor);
+    adjustScrollBar(ui->scrollArea->verticalScrollBar(), factor);
+
+    ui->actionZoomIn->setEnabled(scaleFactor < 3.0);
+    ui->actionZoomOut->setEnabled(scaleFactor > 0.333);
+}
+
+void MainWindow::adjustScrollBar(QScrollBar *scrollBar, double factor)
+{
+    scrollBar->setValue(int(factor * scrollBar->value()
+                            + ((factor - 1) * scrollBar->pageStep()/2)));
+}
+
+
+void MainWindow::on_heightSlider_valueChanged(int value)
+{
+    height = value;
+    ui->drawPushButton->setEnabled(true);
+
+}
+
+void MainWindow::on_widthSlider_valueChanged(int value)
+{
+    width = value;
+    ui->drawPushButton->setEnabled(true);
+}
+
+void MainWindow::on_actionZoomIn_triggered()
+{
+    scaleImage(1.25);
+}
+
+void MainWindow::on_actionZoomOut_triggered()
+{
+    scaleImage(0.8);
+}
+
+void MainWindow::on_actionNormal_Size_triggered()
+{
+    ui->imageArea->adjustSize();
+    scaleFactor = 1.0;
+}
+
+void MainWindow::on_actionFit_To_Window_triggered()
+{
+    bool fitToWindow = ui->actionFit_To_Window->isChecked();
+    ui->scrollArea->setWidgetResizable(fitToWindow);
+    if (!fitToWindow) {
+        on_actionNormal_Size_triggered();
+    }
+    updateActions();
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    QMessageBox::about(this, tr("About Progetto Piattaforme SW"),
+                       tr("<p>XXXXX</p>"));
 }

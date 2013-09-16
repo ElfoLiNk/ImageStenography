@@ -107,6 +107,16 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>pushButton</tabstop>
+  <tabstop>lineEdit</tabstop>
+  <tabstop>oneBitButton</tabstop>
+  <tabstop>fourBitButton</tabstop>
+  <tabstop>eightBitButton</tabstop>
+  <tabstop>sixteenBitButton</tabstop>
+  <tabstop>twentyfourBitButton</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

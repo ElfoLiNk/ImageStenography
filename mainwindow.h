@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QBitmap>
+#include <QScrollArea>
 #include <openfiledialog.h>
 
 namespace Ui {
@@ -26,8 +27,6 @@ private slots:
     bool save();
     bool saveAs();
 
-    void on_actionNew_triggered();
-
     void on_actionExit_triggered();
 
     void on_actionFile_triggered();
@@ -44,6 +43,19 @@ private slots:
 
     void on_drawPushButton_clicked();
 
+    void on_heightSlider_valueChanged(int value);
+
+    void on_widthSlider_valueChanged(int value);
+
+    void on_actionZoomIn_triggered();
+
+    void on_actionZoomOut_triggered();
+
+    void on_actionNormal_Size_triggered();
+
+    void on_actionFit_To_Window_triggered();
+
+    void on_actionAbout_triggered();
 
 private:
     Ui::MainWindow *ui;
@@ -52,21 +64,30 @@ private:
 
     void createActions();
     void createMenus();
+    void updateActions();
+    void scaleImage(double factor);
+    void adjustScrollBar(QScrollBar *scrollBar, double factor);
     void createContextMenu();
     void createToolBars();
     void createStatusBar();
     void readSettings();
     void writeSettings();
     bool okToContinue();
-    bool loadFile(const QString &fileName, int bitpixel);
+    bool loadFile(const QString &fileName);
     bool saveFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
     bool writeFile(const QString &fileName);
-    bool readFile(const QString &fileName, int bitpixel);
+    bool readFile(const QString &fileName);
+    void drawImage();
     QImage contrast(QImage& source, int factor);
     QImage brighten(QImage& source, int factor);
 
+
+    double scaleFactor;
+
     QMenu *fileMenu;
+    QMenu *viewMenu;
+    QMenu *helpMenu;
 
     QToolBar *fileToolBar;
 
@@ -75,18 +96,26 @@ private:
     QAction *saveAction;
     QAction *saveAsAction;
     QAction *exitAction;
+    QAction *aboutAct;
     QAction *aboutQtAction;
 
     QString curFile;
 
     QBitmap bitmap;
+    QPixmap pixmap;
     QImage image;
     QVector<QImage> imageSnapshot;
     int valueContrast;
     int valueBrightness;
+    int height;
+    int width;
     bool isBrightness;
     bool isContrast;
     int bitFormat;
+    QByteArray blob;
+
+protected:
+    void paintEvent(QPaintEvent *paint);
 
 };
 
