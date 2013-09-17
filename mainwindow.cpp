@@ -22,11 +22,16 @@ MainWindow::MainWindow(QWidget *parent) :
     setCurrentFile("");
     this->adjustSize();
 
-    ui->imageArea->setBackgroundRole(QPalette::Base);
-    ui->imageArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    ui->imageArea->setScaledContents(true);
+    imageArea = new QLabel;
+    imageArea->setBackgroundRole(QPalette::Base);
+    imageArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    imageArea->setScaledContents(true);
 
     ui->scrollArea->setBackgroundRole(QPalette::Dark);
+    ui->scrollArea->setWidget(imageArea);
+    ui->scrollArea->resize(500,400);
+
+    connect(ui->actionAbout_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 }
 
 MainWindow::~MainWindow()
@@ -37,13 +42,12 @@ MainWindow::~MainWindow()
 
 void MainWindow::open()
 {
-    if (okToContinue()) {
-        if (!curFile.isEmpty()){
-            if(loadFile(curFile)){
-                drawImage();
-            }
+    if (!curFile.isEmpty()){
+        if(loadFile(curFile)){
+            drawImage();
         }
     }
+    openFileDialog = 0;
 }
 
 bool MainWindow::loadFile(const QString &fileName)
@@ -85,14 +89,6 @@ bool MainWindow::readFile(const QString &fileName)
     return true;
 }
 
-bool MainWindow::save()
-{
-    if (curFile.isEmpty()) {
-        return saveAs();
-    } else {
-        return saveFile(curFile);
-    }
-}
 bool MainWindow::saveFile(const QString &fileName)
 {
     if (!this->writeFile(fileName)) {
@@ -122,32 +118,6 @@ bool MainWindow::writeFile(const QString &fileName)
 
     //    return true;
     return image.save(fileName);
-}
-
-bool MainWindow::saveAs()
-{
-    QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("%1 - Save image").arg(QApplication::applicationName()), ".",tr("Portable Network Graphics (*.png)"));
-    if (fileName.isEmpty())
-        return false;
-    return saveFile(fileName);
-}
-
-bool MainWindow::okToContinue()
-{
-    if (isWindowModified()) {
-        int r = QMessageBox::warning(this, tr("Image"),
-                                     tr("The document has been modified.\n"
-                                        "Do you want to save your changes?"),
-                                     QMessageBox::Yes | QMessageBox::No
-                                     | QMessageBox::Cancel);
-        if (r == QMessageBox::Yes) {
-            //   return save();
-        } else if (r == QMessageBox::Cancel) {
-            return false;
-        }
-    }
-    return true;
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)
@@ -184,14 +154,22 @@ void MainWindow::on_actionFile_triggered()
 }
 
 
-void MainWindow::on_actionSave_triggered()
+bool MainWindow::on_actionSave_triggered()
 {
-    save();
+    if (curFile.isEmpty()) {
+        return on_actionSave_As_triggered();
+    } else {
+        return saveFile(curFile);
+    }
 }
 
-void MainWindow::on_actionSave_As_triggered()
+bool MainWindow::on_actionSave_As_triggered()
 {
-    saveAs();
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("%1 - Save image").arg(QApplication::applicationName()), ".",tr("Portable Network Graphics (*.png)"));
+    if (fileName.isEmpty())
+        return false;
+    return saveFile(fileName);
 }
 
 void MainWindow::on_contrastSlider_valueChanged(int value)
@@ -215,7 +193,7 @@ void MainWindow::on_actionUndo_triggered()
     if(imageSnapshot.size() > 0){
         image = imageSnapshot.at(imageSnapshot.size()-1);
         imageSnapshot.removeLast();
-        ui->imageArea->setPixmap(QPixmap::fromImage(image));
+        imageArea->setPixmap(QPixmap::fromImage(image));
     }
 }
 void MainWindow::on_drawPushButton_clicked()
@@ -255,12 +233,6 @@ void MainWindow::setBitFormat(int bitformat){
     }
 }
 
-void MainWindow::paintEvent(QPaintEvent *paint){
-    QPainter painter(this);
-
-
-
-}
 
 void MainWindow::drawImage(){
     switch(bitFormat){
@@ -270,9 +242,9 @@ void MainWindow::drawImage(){
         ui->heightSlider->setValue(height);
         width = height;
         ui->widthSlider->setValue(width);
-        ui->imageArea->resize(width,height);
+        imageArea->resize(width,height);
         bitmap = QBitmap::fromData(QSize(height,width),(const uchar*)blob.data(),QImage::Format_Mono);
-        ui->imageArea->setPixmap(bitmap);
+        imageArea->setPixmap(bitmap);
         break;
     }
     case 4:
@@ -281,8 +253,8 @@ void MainWindow::drawImage(){
         ui->heightSlider->setValue(height);
         width = height;
         ui->widthSlider->setValue(width);
-        ui->imageArea->resize(width,height);
-        ui->imageArea->setPixmap(pixmap);
+        imageArea->resize(width,height);
+        imageArea->setPixmap(pixmap);
 
         break;
     }
@@ -293,7 +265,7 @@ void MainWindow::drawImage(){
         width = height;
         ui->widthSlider->setValue(width);
         pixmap.loadFromData(blob,(const char*)3,Qt::AutoColor);
-        ui->imageArea->setPixmap(pixmap);
+        imageArea->setPixmap(pixmap);
         break;
     }
     case 16:
@@ -302,7 +274,7 @@ void MainWindow::drawImage(){
         ui->heightSlider->setValue(height);
         width = height;
         ui->widthSlider->setValue(width);
-        ui->imageArea->setPixmap(pixmap);
+        imageArea->setPixmap(pixmap);
         break;
     }
     case 24:
@@ -311,7 +283,7 @@ void MainWindow::drawImage(){
         ui->heightSlider->setValue(height);
         width = height;
         ui->widthSlider->setValue(width);
-        ui->imageArea->setPixmap(pixmap);
+        imageArea->setPixmap(pixmap);
         break;
     }
     default:
@@ -324,7 +296,7 @@ void MainWindow::drawImage(){
     updateActions();
 
     if (!ui->actionFit_To_Window->isChecked())
-        ui->imageArea->adjustSize();
+        imageArea->adjustSize();
 
 }
 
@@ -340,9 +312,9 @@ void MainWindow::updateActions()
 void MainWindow::scaleImage(double factor)
 
 {
-    Q_ASSERT(ui->imageArea->pixmap());
+    Q_ASSERT(imageArea->pixmap());
     scaleFactor *= factor;
-    ui->imageArea->resize(scaleFactor * ui->imageArea->pixmap()->size());
+    imageArea->resize(scaleFactor * imageArea->pixmap()->size());
 
     adjustScrollBar(ui->scrollArea->horizontalScrollBar(), factor);
     adjustScrollBar(ui->scrollArea->verticalScrollBar(), factor);
@@ -373,17 +345,25 @@ void MainWindow::on_widthSlider_valueChanged(int value)
 
 void MainWindow::on_actionZoomIn_triggered()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
     scaleImage(1.25);
+
+    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::on_actionZoomOut_triggered()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
     scaleImage(0.8);
+
+    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::on_actionNormal_Size_triggered()
 {
-    ui->imageArea->adjustSize();
+    imageArea->adjustSize();
     scaleFactor = 1.0;
 }
 

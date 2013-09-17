@@ -24,16 +24,14 @@ private slots:
     void setCurrentFile(const QString &fileName);
     void setBitFormat(int bitformat);
     void open();
-    bool save();
-    bool saveAs();
 
     void on_actionExit_triggered();
 
     void on_actionFile_triggered();
 
-    void on_actionSave_triggered();
+    bool on_actionSave_triggered();
 
-    void on_actionSave_As_triggered();
+    bool on_actionSave_As_triggered();
 
     void on_contrastSlider_valueChanged(int value);
 
@@ -85,22 +83,8 @@ private:
 
     double scaleFactor;
 
-    QMenu *fileMenu;
-    QMenu *viewMenu;
-    QMenu *helpMenu;
-
-    QToolBar *fileToolBar;
-
-    QAction *newAction;
-    QAction *openAction;
-    QAction *saveAction;
-    QAction *saveAsAction;
-    QAction *exitAction;
-    QAction *aboutAct;
-    QAction *aboutQtAction;
-
+    QLabel *imageArea;
     QString curFile;
-
     QBitmap bitmap;
     QPixmap pixmap;
     QImage image;
@@ -114,8 +98,6 @@ private:
     int bitFormat;
     QByteArray blob;
 
-protected:
-    void paintEvent(QPaintEvent *paint);
 
 };
 
