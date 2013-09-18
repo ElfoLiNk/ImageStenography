@@ -254,23 +254,20 @@ void MainWindow::drawImage(){
         width = height;
         ui->widthSlider->setValue(width);
         imageArea->resize(width,height);
-        QByteArray extracted_datapgm = convertToPGM((char*)blob.data(),height*width);
+        QByteArray extracted_datapgm = convertToPGM((char*)blob.data(),blob.size());
 
         if (extracted_datapgm.isNull())
         {
             QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),"could not convertToPGM()");
         }
 
-        QImage single_img;
+        bool ok = pixmap.loadFromData(extracted_datapgm, "pgm");
+        if(ok){
+            imageArea->setPixmap(pixmap);
+        } else{
+            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),"ERROR pixmap load from data");
 
-
-        if (!single_img.loadFromData((const uchar*) extracted_datapgm.data(),extracted_datapgm.size(), "PGM"))
-        {
-            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),"could not create extracted image");
         }
-        pixmap = QPixmap::fromImage(single_img);
-        imageArea->setPixmap(pixmap);
-
         break;
     }
     case 8:
@@ -348,84 +345,24 @@ QByteArray MainWindow::convertToPGM(char* img_buffer, int size)
 {
 
     QByteArray pgm;
-    QDataStream out(&pgm,QIODevice::WriteOnly);
+    QByteArray raw;
+    QDataStream out(&raw,QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_1);
     QApplication::setOverrideCursor(Qt::WaitCursor);
     for (int i = 0; i < size; i++){
-        // write the header
-        out << "P5\n" << width << " " << height << " 255\n";
-
-        // write the data
-        out.writeRawData(img_buffer, size*sizeof(uchar));
+        out.writeRawData(img_buffer+i, sizeof(uchar));
     }
     QApplication::restoreOverrideCursor();
 
+    pgm.clear();
+    pgm.append("P5 ");
+    pgm.append(QString::number(width));
+    pgm.append(" ");
+    pgm.append(QString::number(height));
+    pgm.append(" 15\n");
+    pgm.append(raw);
+
     return pgm;
-
-    //  int IMW= width;
-    //  int IMH= height;
-    //  int pgm_size = IMW*IMH+15;
-
-    //  if (size<IMW*IMH)
-    //  {
-    //      return QByteArray(NULL);
-    //  }
-
-    //  char *data = 0;
-    //  data = img_buffer;
-
-    //  if ( 0 == data)
-    //  {
-    //      return QByteArray(NULL);
-    //  }
-
-    //  /* pgm format specs
-    //1 A "magic number" for identifying the file type. A pgm image's magic number is the two characters "P5".
-    //2 Whitespace (blanks, TABs, CRs, LFs).
-    //3 A width, formatted as ASCII characters in decimal.
-    //4 Whitespace.
-    //5 A height, again in ASCII decimal.
-    //6 Whitespace.
-    //7 The maximum gray value (Maxval), again in ASCII decimal. Must be less than 65536, and more than zero.
-    //8 A single whitespace character (usually a newline).
-    //9 A raster of Height rows, in order from top to bottom.
-    //*/
-    //  // the following is a very rude hack to create a pgm from the image data - for more info see
-    //  // http://local.wasp.uwa.edu.au/~pbourke/dataformats/ppm/
-    //  // this is a fixed size 620*620 pgm of IM_H*IM_W with only 8 bit grayscale binary colors output
-
-    //  //create header
-    //  char* dest=(char*)malloc(pgm_size); // 15 = size of header, IM_H*IM_W= size of grayscale pix array
-
-    //  *(dest)='P';
-    //  *(dest+1)='5';
-    //  *(dest+2)= 0x0a;
-    //  *(dest+3)='5';
-    //  *(dest+4)='1';
-    //  *(dest+5)='2';
-    //  *(dest+6)=' ';
-    //  *(dest+7)='5';
-    //  *(dest+8)='1';
-    //  *(dest+9)='2';
-    //  *(dest+10)= 0x0a;
-    //  *(dest+11)='1';
-    //  *(dest+12)='5';
-    //  *(dest+13)= 0x0a;
-
-    //  // copy img data
-    //  for( int y = 0; y < IMH; y++)
-    //  {
-    //      memcpy( dest+15+(sizeof(unsigned char)*y*IMW), data, IMW );
-    //      data+= IMW;
-    //  }
-
-    //  // dest is ready and holds pgm data
-
-    //  QByteArray ret(dest, pgm_size);
-
-    //  free(dest);
-
-    //  return ret;
 
 }
 

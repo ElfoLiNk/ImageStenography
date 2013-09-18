@@ -81,7 +81,6 @@ private:
     QImage brighten(QImage& source, int factor);
     QByteArray convertToPGM(char* img_buffer, int size);
 
-
     double scaleFactor;
 
     QLabel *imageArea;
