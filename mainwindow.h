@@ -79,6 +79,7 @@ private:
     void drawImage();
     QImage contrast(QImage& source, int factor);
     QImage brighten(QImage& source, int factor);
+    QByteArray convertToPGM(char* img_buffer, int size);
 
 
     double scaleFactor;
