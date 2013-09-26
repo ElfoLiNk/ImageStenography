@@ -13,10 +13,10 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <widget class="QLabel" name="label">
@@ -37,7 +37,7 @@
        </item>
       </layout>
      </item>
-     <item>
+     <item row="1" column="0">
       <widget class="QGroupBox" name="groupBox">
        <property name="enabled">
         <bool>false</bool>
@@ -93,15 +93,42 @@
        </layout>
       </widget>
      </item>
-     <item>
-      <widget class="QDialogButtonBox" name="buttonBox">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="standardButtons">
-        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-       </property>
-      </widget>
+     <item row="2" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QPushButton" name="paletteButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Palette</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QDialogButtonBox" name="buttonBox">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="standardButtons">
+          <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -126,8 +153,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>227</x>
-     <y>282</y>
+     <x>388</x>
+     <y>256</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -142,8 +169,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>295</x>
-     <y>288</y>
+     <x>388</x>
+     <y>256</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -158,12 +185,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>69</x>
-     <y>214</y>
+     <x>86</x>
+     <y>164</y>
     </hint>
     <hint type="destinationlabel">
-     <x>193</x>
-     <y>277</y>
+     <x>388</x>
+     <y>256</y>
     </hint>
    </hints>
   </connection>
@@ -175,11 +202,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>159</x>
-     <y>214</y>
+     <y>164</y>
     </hint>
     <hint type="destinationlabel">
-     <x>199</x>
-     <y>279</y>
+     <x>388</x>
+     <y>256</y>
     </hint>
    </hints>
   </connection>
@@ -191,11 +218,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>233</x>
-     <y>214</y>
+     <y>164</y>
     </hint>
     <hint type="destinationlabel">
-     <x>174</x>
-     <y>272</y>
+     <x>388</x>
+     <y>256</y>
     </hint>
    </hints>
   </connection>
@@ -207,11 +234,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>306</x>
-     <y>214</y>
+     <y>164</y>
     </hint>
     <hint type="destinationlabel">
-     <x>229</x>
-     <y>276</y>
+     <x>388</x>
+     <y>256</y>
     </hint>
    </hints>
   </connection>
@@ -223,11 +250,27 @@
    <hints>
     <hint type="sourcelabel">
      <x>379</x>
-     <y>214</y>
+     <y>164</y>
     </hint>
     <hint type="destinationlabel">
-     <x>134</x>
-     <y>288</y>
+     <x>367</x>
+     <y>256</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>eightBitButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>paletteButton</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>186</x>
+     <y>156</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>66</x>
+     <y>247</y>
     </hint>
    </hints>
   </connection>

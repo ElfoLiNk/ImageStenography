@@ -22,6 +22,7 @@ public:
 
 private slots:
     void setCurrentFile(const QString &fileName);
+    void setPaletteFile(const QString &fileName);
     void setBitFormat(int bitformat);
     void open();
 
@@ -79,12 +80,13 @@ private:
     void drawImage();
     QImage contrast(QImage& source, int factor);
     QImage brighten(QImage& source, int factor);
-    QByteArray convertToPGM(char* img_buffer, int size);
+    QByteArray convertToPGM(char* img_buffer, int size, int scale);
 
     double scaleFactor;
 
     QLabel *imageArea;
     QString curFile;
+    QString paletteFile;
     QBitmap bitmap;
     QPixmap pixmap;
     QImage image;
@@ -97,6 +99,7 @@ private:
     bool isContrast;
     int bitFormat;
     QByteArray blob;
+    QVector<QRgb> vectorColors;
 
 
 };

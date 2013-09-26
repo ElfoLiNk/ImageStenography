@@ -17,6 +17,7 @@ public:
 
 signals:
     void setFileName(QString fileName);
+    void setPaletteName(QString fileName);
     void openFile();
     void fileBitFormat(const int&);
     
@@ -25,12 +26,16 @@ private slots:
 
     void on_buttonBox_accepted();
 
+    void on_paletteButton_clicked();
+
+
 private:
     Ui::OpenFileDialog *ui;
 
     int findBitFormat();
 
     QString fileName;
+    QString paletteName;
 };
 
 #endif // OPENFILEDIALOG_H

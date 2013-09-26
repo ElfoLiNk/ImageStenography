@@ -48,6 +48,18 @@ void MainWindow::open()
         }
     }
     openFileDialog = 0;
+
+
+    if (!paletteFile.isEmpty()){
+        if(loadFile(paletteFile)){
+            char *pointer = blob.data();
+            for(int i = 0; i < blob.size();i++ ){
+                vectorColors[i] = qRgb(*pointer, *pointer+1, *pointer+2);
+            }
+        }
+    }
+
+
 }
 
 bool MainWindow::loadFile(const QString &fileName)
@@ -131,6 +143,12 @@ void MainWindow::setCurrentFile(const QString &fileName)
     setWindowTitle(tr("%1[*] - %2").arg(shownName)
                    .arg(tr("ProgettoPiattaformeSW")));
 }
+
+void MainWindow::setPaletteFile(const QString &fileName){
+    paletteFile = fileName;
+
+}
+
 QString MainWindow::strippedName(const QString &fullFileName)
 {
     return QFileInfo(fullFileName).fileName();
@@ -249,12 +267,13 @@ void MainWindow::drawImage(){
     }
     case 4:
     {
+        int scale = 15;
         height = sqrt(blob.size()*8)/4 + 1;
         ui->heightSlider->setValue(height);
         width = height;
         ui->widthSlider->setValue(width);
         imageArea->resize(width,height);
-        QByteArray extracted_datapgm = convertToPGM((char*)blob.data(),blob.size());
+        QByteArray extracted_datapgm = convertToPGM((char*)blob.data(),blob.size(),scale);
 
         if (extracted_datapgm.isNull())
         {
@@ -272,12 +291,30 @@ void MainWindow::drawImage(){
     }
     case 8:
     {
+        int scale = 255;
         height = sqrt(blob.size()) + 1;
         ui->heightSlider->setValue(height);
         width = height;
         ui->widthSlider->setValue(width);
-        pixmap.loadFromData(blob,(const char*)3,Qt::AutoColor);
-        imageArea->setPixmap(pixmap);
+        if(!vectorColors.isEmpty()){
+            image.setColorTable(vectorColors);
+        }else{
+            imageArea->resize(width,height);
+            QByteArray extracted_datapgm = convertToPGM((char*)blob.data(),blob.size(),scale);
+
+            if (extracted_datapgm.isNull())
+            {
+                QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),"could not convertToPGM()");
+            }
+
+            bool ok = pixmap.loadFromData(extracted_datapgm, "pgm");
+            if(ok){
+                imageArea->setPixmap(pixmap);
+            } else{
+                QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),"ERROR pixmap load from data");
+
+            }
+        }
         break;
     }
     case 16:
@@ -341,7 +378,7 @@ void MainWindow::adjustScrollBar(QScrollBar *scrollBar, double factor)
                             + ((factor - 1) * scrollBar->pageStep()/2)));
 }
 
-QByteArray MainWindow::convertToPGM(char* img_buffer, int size)
+QByteArray MainWindow::convertToPGM(char* img_buffer, int size,int scale)
 {
 
     QByteArray pgm;
@@ -359,7 +396,9 @@ QByteArray MainWindow::convertToPGM(char* img_buffer, int size)
     pgm.append(QString::number(width));
     pgm.append(" ");
     pgm.append(QString::number(height));
-    pgm.append(" 15\n");
+    pgm.append(" ");
+    pgm.append(QString::number(scale));
+    pgm.append("\n");
     pgm.append(raw);
 
     return pgm;
@@ -420,3 +459,5 @@ void MainWindow::on_actionAbout_triggered()
     QMessageBox::about(this, tr("About Progetto Piattaforme SW"),
                        tr("<p>XXXXX</p>"));
 }
+
+

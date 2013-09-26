@@ -13,6 +13,7 @@ OpenFileDialog::OpenFileDialog(QWidget *parent) :
     setWindowTitle(tr("OpenBlob - ProgettoPiattaformeSW"));
     connect(this,SIGNAL(openFile()),this->parent(),SLOT(open()));
     connect(this, SIGNAL(setFileName(const QString&)), this->parent(), SLOT(setCurrentFile(const QString&)) );
+    connect(this, SIGNAL(setPaletteName(const QString&)), this->parent(), SLOT(setPaletteFile(const QString&)) );
     connect(this, SIGNAL(fileBitFormat(const int&)), this->parent(), SLOT(setBitFormat(const int&)) );
 }
 
@@ -32,9 +33,17 @@ void OpenFileDialog::on_pushButton_clicked()
     }
 }
 
+void OpenFileDialog::on_paletteButton_clicked()
+{
+    paletteName = QFileDialog::getOpenFileName(this,
+                                               tr("Open Palette"), ".",
+                                               tr("Palette (*.txt)"));
+}
+
 void OpenFileDialog::on_buttonBox_accepted()
 {
     emit setFileName(fileName);
+    emit setPaletteName(paletteName);
     int bitFormat = findBitFormat();
     emit fileBitFormat(bitFormat);
     emit openFile();
