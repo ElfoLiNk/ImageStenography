@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->scrollArea->setWidget(imageArea);
     ui->scrollArea->resize(500,400);
 
+    // AboutQt Signal
     connect(ui->actionAbout_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 }
 
@@ -323,7 +324,9 @@ void MainWindow::drawImage(){
         ui->heightSlider->setValue(height);
         width = height;
         ui->widthSlider->setValue(width);
-        imageArea->setPixmap(pixmap);
+        QImage image(height, width, QImage::Format_ARGB4444_Premultiplied);
+
+        imageArea->setPixmap(pixmap.fromImage(image));
         break;
     }
     case 24:
@@ -332,7 +335,19 @@ void MainWindow::drawImage(){
         ui->heightSlider->setValue(height);
         width = height;
         ui->widthSlider->setValue(width);
-        imageArea->setPixmap(pixmap);
+        QImage image(height, width, QImage::Format_RGB888);
+        // Divisibile per 3
+        if((blob.size() - 1)%3 == 0){
+
+        for(int i = 0; i < blob.size()-2; i++){
+            vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
+        }
+        image.setColorTable(vectorColors);
+        // Non divisibile per 3
+        }else{
+
+        }
+        imageArea->setPixmap(pixmap.fromImage(image));
         break;
     }
     default:
