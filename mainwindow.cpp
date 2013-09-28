@@ -88,6 +88,8 @@ bool MainWindow::readFile(const QString &fileName)
     blob = file.readAll();
     QApplication::restoreOverrideCursor();
 
+    setSizeImage();
+
     //        quint32 word = 0;
     //        quint8 byte;
     //        int i = 0;
@@ -217,14 +219,18 @@ void MainWindow::on_actionUndo_triggered()
 }
 void MainWindow::on_drawPushButton_clicked()
 {
-    imageSnapshot.append(image);
+    if(imageArea->pixmap()){
+        imageSnapshot.append(imageArea->pixmap()->toImage());
+    }
     if(isContrast){
         image = changeContrast(image, valueContrast);
-    }
-    if(isBrightness){
+        imageArea->setPixmap(pixmap.fromImage(image));
+    } else if(isBrightness){
         image = changeBrightness(image, valueBrightness);
+        imageArea->setPixmap(pixmap.fromImage(image));
+    } else {
+        drawImage();
     }
-    drawImage();
     isBrightness = false;
     isContrast = false;
     ui->drawPushButton->setEnabled(false);
@@ -254,52 +260,18 @@ void MainWindow::setBitFormat(int bitformat){
 
 
 void MainWindow::drawImage(){
-    switch(bitFormat){
-    case 1:
-    {
-        height = sqrt(blob.size()*8) + 1;
-        ui->heightSlider->setValue(height);
-        width = height;
-        ui->widthSlider->setValue(width);
-        imageArea->resize(width,height);
-        bitmap = QBitmap::fromData(QSize(height,width),(const uchar*)blob.data(),QImage::Format_Mono);
-        imageArea->setPixmap(bitmap);
-        break;
-    }
-    case 4:
-    {
-        int scale = 15;
-        height = sqrt(blob.size()*8)/4 + 1;
-        ui->heightSlider->setValue(height);
-        width = height;
-        ui->widthSlider->setValue(width);
-        imageArea->resize(width,height);
-        QByteArray extracted_datapgm = convertToPGM((char*)blob.data(),blob.size(),scale);
-
-        if (extracted_datapgm.isNull())
+    if(!blob.isEmpty()){
+        switch(bitFormat){
+        case 1:
         {
-            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),"could not convertToPGM()");
+            imageArea->resize(width,height);
+            bitmap = QBitmap::fromData(QSize(height,width),(const uchar*)blob.data(),QImage::Format_Mono);
+            imageArea->setPixmap(bitmap);
+            break;
         }
-
-        bool ok = pixmap.loadFromData(extracted_datapgm, "pgm");
-        if(ok){
-            imageArea->setPixmap(pixmap);
-        } else{
-            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),"ERROR pixmap load from data");
-
-        }
-        break;
-    }
-    case 8:
-    {
-        int scale = 255;
-        height = sqrt(blob.size()) + 1;
-        ui->heightSlider->setValue(height);
-        width = height;
-        ui->widthSlider->setValue(width);
-        if(!vectorColors.isEmpty()){
-            image.setColorTable(vectorColors);
-        }else{
+        case 4:
+        {
+            int scale = 15;
             imageArea->resize(width,height);
             QByteArray extracted_datapgm = convertToPGM((char*)blob.data(),blob.size(),scale);
 
@@ -315,55 +287,124 @@ void MainWindow::drawImage(){
                 QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),"ERROR pixmap load from data");
 
             }
+            break;
         }
-        break;
-    }
-    case 16:
-    {
-        height = sqrt(blob.size()*8)/16 + 1;
-        ui->heightSlider->setValue(height);
-        width = height;
-        ui->widthSlider->setValue(width);
-        QImage image(height, width, QImage::Format_ARGB4444_Premultiplied);
+        case 8:
+        {
+            if(!vectorColors.isEmpty()){
+                image.setColorTable(vectorColors);
+            }else{
+                int scale = 255;
+                imageArea->resize(width,height);
+                QByteArray extracted_datapgm = convertToPGM((char*)blob.data(),blob.size(),scale);
 
-        imageArea->setPixmap(pixmap.fromImage(image));
-        break;
-    }
-    case 24:
-    {
-        height = sqrt(blob.size()*8)/24 + 1;
-        ui->heightSlider->setValue(height);
-        width = height;
-        ui->widthSlider->setValue(width);
-        QImage image(height, width, QImage::Format_RGB888);
-        // Divisibile per 3
-        if((blob.size() - 1)%3 == 0){
+                if (extracted_datapgm.isNull())
+                {
+                    QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),"could not convertToPGM()");
+                }
 
-        for(int i = 0; i < blob.size()-2; i++){
-            vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
+                bool ok = pixmap.loadFromData(extracted_datapgm, "pgm");
+                if(ok){
+                    imageArea->setPixmap(pixmap);
+                } else{
+                    QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),"ERROR pixmap load from data");
+
+                }
+            }
+            break;
         }
-        image.setColorTable(vectorColors);
-        // Non divisibile per 3
-        }else{
+        case 16:
+        {
+            imageArea->resize(width,height);
+            QImage image(height, width, QImage::Format_ARGB4444_Premultiplied);
 
+            imageArea->setPixmap(pixmap.fromImage(image));
+            break;
         }
-        imageArea->setPixmap(pixmap.fromImage(image));
-        break;
+        case 24:
+        {
+            imageArea->resize(width,height);
+            QImage image(height, width, QImage::Format_RGB888);
+            // Divisibile per 3
+            if((blob.size() - 1)%3 == 0){
+
+                for(int i = 0; i < blob.size()-2; i++){
+                    vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
+                }
+                image.setColorTable(vectorColors);
+                // Non divisibile per 3
+            }else{
+
+            }
+            imageArea->setPixmap(pixmap.fromImage(image));
+            break;
+        }
+        default:
+            break;
+        }
+
+        scaleFactor = 1.0;
+
+        ui->actionFit_To_Window->setEnabled(true);
+        updateActions();
+
+        if (!ui->actionFit_To_Window->isChecked()){
+            imageArea->adjustSize();
+        }
+
     }
-    default:
-        break;
-    }
-
-    scaleFactor = 1.0;
-
-    ui->actionFit_To_Window->setEnabled(true);
-    updateActions();
-
-    if (!ui->actionFit_To_Window->isChecked())
-        imageArea->adjustSize();
 
 }
 
+void MainWindow::setSizeImage(){
+    if(!blob.isEmpty()){
+        switch(bitFormat){
+        case 1:
+        {
+            height = sqrt(blob.size()*8) + 1;
+            ui->heightSlider->setValue(height);
+            width = height;
+            ui->widthSlider->setValue(width);
+            break;
+        }
+        case 4:
+        {
+            height = sqrt(blob.size()*8)/4 + 1;
+            ui->heightSlider->setValue(height);
+            width = height;
+            ui->widthSlider->setValue(width);
+            break;
+        }
+        case 8:
+        {
+            height = sqrt(blob.size()) + 1;
+            ui->heightSlider->setValue(height);
+            width = height;
+            ui->widthSlider->setValue(width);
+            break;
+        }
+        case 16:
+        {
+            height = sqrt(blob.size()*8)/16 + 1;
+            ui->heightSlider->setValue(height);
+            width = height;
+            ui->widthSlider->setValue(width);
+            break;
+        }
+        case 24:
+        {
+            height = sqrt(blob.size()*8)/24 + 1;
+            ui->heightSlider->setValue(height);
+            width = height;
+            ui->widthSlider->setValue(width);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+}
 
 void MainWindow::updateActions()
 {
@@ -476,3 +517,38 @@ void MainWindow::on_actionAbout_triggered()
 }
 
 
+
+void MainWindow::on_oneBitButton_clicked()
+{
+    bitFormat = 1;
+    ui->drawPushButton->setEnabled(true);
+    setSizeImage();
+}
+
+void MainWindow::on_fourBitButton_clicked()
+{
+    bitFormat = 4;
+    ui->drawPushButton->setEnabled(true);
+    setSizeImage();
+}
+
+void MainWindow::on_eightBitButton_clicked()
+{
+    bitFormat = 8;
+    ui->drawPushButton->setEnabled(true);
+    setSizeImage();
+}
+
+void MainWindow::on_sixteenBitButton_clicked()
+{
+    bitFormat = 16;
+    ui->drawPushButton->setEnabled(true);
+    setSizeImage();
+}
+
+void MainWindow::on_twentyfourBitButton_clicked()
+{
+    bitFormat = 24;
+    ui->drawPushButton->setEnabled(true);
+    setSizeImage();
+}

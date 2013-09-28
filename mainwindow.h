@@ -56,6 +56,16 @@ private slots:
 
     void on_actionAbout_triggered();
 
+    void on_oneBitButton_clicked();
+
+    void on_fourBitButton_clicked();
+
+    void on_eightBitButton_clicked();
+
+    void on_sixteenBitButton_clicked();
+
+    void on_twentyfourBitButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -81,6 +91,7 @@ private:
     QImage contrast(QImage& source, int factor);
     QImage brighten(QImage& source, int factor);
     QByteArray convertToPGM(char* img_buffer, int size, int scale);
+    void setSizeImage();
 
     double scaleFactor;
 
