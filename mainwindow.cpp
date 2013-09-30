@@ -6,6 +6,8 @@
 #include <QPainter>
 #include <QGridLayout>
 #include <QScrollBar>
+#include <QMouseEvent>
+#include <QRubberBand>
 
 #include "imagefilter.cpp"
 #include "mainwindow.h"
@@ -31,8 +33,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->scrollArea->setWidget(imageArea);
     ui->scrollArea->resize(500,400);
 
+
+    rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+
     // AboutQt Signal
     connect(ui->actionAbout_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+
 }
 
 MainWindow::~MainWindow()
@@ -132,7 +138,29 @@ bool MainWindow::writeFile(const QString &fileName)
 
 
     //    return true;
-    return image.save(fileName);
+    if(!pixmap.isNull()){
+        QFile file(fileName+".png");
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
+                                 tr("Cannot write file %1:\n%2.")
+                                 .arg(file.fileName())
+                                 .arg(file.errorString()));
+            return false;
+        }
+        return pixmap.save(&file, "PNG");
+    }
+    if(!image->isNull()){
+        QFile file(fileName+".png");
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
+                                 tr("Cannot write file %1:\n%2.")
+                                 .arg(file.fileName())
+                                 .arg(file.errorString()));
+            return false;
+        }
+        return image->save(&file, "PNG");
+    }
+
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)
@@ -212,9 +240,9 @@ void MainWindow::on_brightnessSlider_valueChanged(int value)
 void MainWindow::on_actionUndo_triggered()
 {
     if(imageSnapshot.size() > 0){
-        image = imageSnapshot.at(imageSnapshot.size()-1);
+        *image = imageSnapshot.at(imageSnapshot.size()-1);
         imageSnapshot.removeLast();
-        imageArea->setPixmap(QPixmap::fromImage(image));
+        imageArea->setPixmap(QPixmap::fromImage(*image));
     }
 }
 void MainWindow::on_drawPushButton_clicked()
@@ -223,11 +251,11 @@ void MainWindow::on_drawPushButton_clicked()
         imageSnapshot.append(imageArea->pixmap()->toImage());
     }
     if(isContrast){
-        image = changeContrast(image, valueContrast);
-        imageArea->setPixmap(pixmap.fromImage(image));
+        *image = changeContrast(*image, valueContrast);
+        imageArea->setPixmap(pixmap.fromImage(*image));
     } else if(isBrightness){
-        image = changeBrightness(image, valueBrightness);
-        imageArea->setPixmap(pixmap.fromImage(image));
+        *image = changeBrightness(*image, valueBrightness);
+        imageArea->setPixmap(pixmap.fromImage(*image));
     } else {
         drawImage();
     }
@@ -292,7 +320,10 @@ void MainWindow::drawImage(){
         case 8:
         {
             if(!vectorColors.isEmpty()){
+                QImage image(width, height, QImage::Format_RGB888);
                 image.setColorTable(vectorColors);
+                imageArea->resize(width,height);
+                imageArea->setPixmap(pixmap.fromImage(image));
             }else{
                 int scale = 255;
                 imageArea->resize(width,height);
@@ -318,25 +349,29 @@ void MainWindow::drawImage(){
             imageArea->resize(width,height);
             QImage image(height, width, QImage::Format_ARGB4444_Premultiplied);
 
-            imageArea->setPixmap(pixmap.fromImage(image));
+            //imageArea->setPixmap(pixmap.fromImage(image));
             break;
         }
         case 24:
         {
             imageArea->resize(width,height);
-            QImage image(height, width, QImage::Format_RGB888);
+            image = new QImage(height, width, QImage::Format_RGB888);
             // Divisibile per 3
             if((blob.size() - 1)%3 == 0){
 
                 for(int i = 0; i < blob.size()-2; i++){
                     vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
                 }
-                image.setColorTable(vectorColors);
+                image->setColorTable(vectorColors);
                 // Non divisibile per 3
             }else{
-
+                int rest = (blob.size() - 1)%3;
+                for(int i = 0; i < blob.size()-rest; i++){
+                    vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
+                }
+                image->setColorTable(vectorColors);
             }
-            imageArea->setPixmap(pixmap.fromImage(image));
+            imageArea->setPixmap(pixmap.fromImage(*image));
             break;
         }
         default:
@@ -551,4 +586,39 @@ void MainWindow::on_twentyfourBitButton_clicked()
     bitFormat = 24;
     ui->drawPushButton->setEnabled(true);
     setSizeImage();
+}
+
+void MainWindow::mousePressEvent(QMouseEvent *e)
+{
+    origin = e->pos();
+
+    rubberBand->setGeometry(QRect(origin, QSize()));
+    rubberBand->show();
+
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *e)
+{
+    rubberBand->setGeometry(QRect(origin, e->pos()).normalized());
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent *e)
+{
+    rubberBand->hide();
+    ui->saveAreaButton->setEnabled(true);
+}
+
+void MainWindow::on_saveAreaButton_clicked()
+{
+
+
+    if(!image->isNull()){
+
+    }
+    if(!pixmap.isNull()){
+        pixmap.copy(rubberBand->geometry());
+    }
+    saveFile(curFile);
+    ui->saveAreaButton->setEnabled(false);
+
 }

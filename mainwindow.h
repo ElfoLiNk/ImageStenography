@@ -5,7 +5,9 @@
 #include <QLabel>
 #include <QBitmap>
 #include <QScrollArea>
+#include <QRubberBand>
 #include <openfiledialog.h>
+
 
 namespace Ui {
 class MainWindow;
@@ -19,6 +21,12 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+protected:
+   //void paintEvent(QPaintEvent *e);
+    void mousePressEvent(QMouseEvent *e);
+    void mouseMoveEvent(QMouseEvent *e);
+    void mouseReleaseEvent(QMouseEvent *e);
 
 private slots:
     void setCurrentFile(const QString &fileName);
@@ -66,6 +74,8 @@ private slots:
 
     void on_twentyfourBitButton_clicked();
 
+    void on_saveAreaButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -100,7 +110,7 @@ private:
     QString paletteFile;
     QBitmap bitmap;
     QPixmap pixmap;
-    QImage image;
+    QImage *image;
     QVector<QImage> imageSnapshot;
     int valueContrast;
     int valueBrightness;
@@ -111,6 +121,10 @@ private:
     int bitFormat;
     QByteArray blob;
     QVector<QRgb> vectorColors;
+
+    QRubberBand *rubberBand;
+    QRect selectionRect;
+    QPoint origin;
 
 
 };

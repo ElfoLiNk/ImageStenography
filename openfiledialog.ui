@@ -48,6 +48,9 @@
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QRadioButton" name="oneBitButton">
+          <property name="toolTip">
+           <string/>
+          </property>
           <property name="text">
            <string>1 Bit</string>
           </property>
