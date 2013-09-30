@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     openFileDialog = 0;
+
     //setWindowIcon(QIcon(":/images/icon.png"));
     setCurrentFile("");
     this->adjustSize();
@@ -149,7 +150,7 @@ bool MainWindow::writeFile(const QString &fileName)
         }
         return pixmap.save(&file, "PNG");
     }
-    if(!image->isNull()){
+    if(!image.isNull()){
         QFile file(fileName+".png");
         if (!file.open(QIODevice::WriteOnly)) {
             QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
@@ -158,8 +159,21 @@ bool MainWindow::writeFile(const QString &fileName)
                                  .arg(file.errorString()));
             return false;
         }
-        return image->save(&file, "PNG");
+        return image.save(&file, "PNG");
     }
+    if(!bitmap.isNull()){
+        QFile file(fileName+".png");
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
+                                 tr("Cannot write file %1:\n%2.")
+                                 .arg(file.fileName())
+                                 .arg(file.errorString()));
+            return false;
+        }
+        return bitmap.save(&file, "PNG");
+    }
+
+    return false;
 
 }
 
@@ -240,9 +254,9 @@ void MainWindow::on_brightnessSlider_valueChanged(int value)
 void MainWindow::on_actionUndo_triggered()
 {
     if(imageSnapshot.size() > 0){
-        *image = imageSnapshot.at(imageSnapshot.size()-1);
+        image = imageSnapshot.at(imageSnapshot.size()-1);
         imageSnapshot.removeLast();
-        imageArea->setPixmap(QPixmap::fromImage(*image));
+        imageArea->setPixmap(QPixmap::fromImage(image));
     }
 }
 void MainWindow::on_drawPushButton_clicked()
@@ -251,11 +265,11 @@ void MainWindow::on_drawPushButton_clicked()
         imageSnapshot.append(imageArea->pixmap()->toImage());
     }
     if(isContrast){
-        *image = changeContrast(*image, valueContrast);
-        imageArea->setPixmap(pixmap.fromImage(*image));
+        image = changeContrast(image, valueContrast);
+        imageArea->setPixmap(pixmap.fromImage(image));
     } else if(isBrightness){
-        *image = changeBrightness(*image, valueBrightness);
-        imageArea->setPixmap(pixmap.fromImage(*image));
+        image = changeBrightness(image, valueBrightness);
+        imageArea->setPixmap(pixmap.fromImage(image));
     } else {
         drawImage();
     }
@@ -293,7 +307,7 @@ void MainWindow::drawImage(){
         case 1:
         {
             imageArea->resize(width,height);
-            bitmap = QBitmap::fromData(QSize(height,width),(const uchar*)blob.data(),QImage::Format_Mono);
+            bitmap = bitmap.fromData(QSize(height,width),(const uchar*)blob.data(),QImage::Format_Mono);
             imageArea->setPixmap(bitmap);
             break;
         }
@@ -355,23 +369,23 @@ void MainWindow::drawImage(){
         case 24:
         {
             imageArea->resize(width,height);
-            image = new QImage(height, width, QImage::Format_RGB888);
+            image = QImage(height, width, QImage::Format_RGB888);
             // Divisibile per 3
             if((blob.size() - 1)%3 == 0){
 
                 for(int i = 0; i < blob.size()-2; i++){
                     vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
                 }
-                image->setColorTable(vectorColors);
+                image.setColorTable(vectorColors);
                 // Non divisibile per 3
             }else{
                 int rest = (blob.size() - 1)%3;
                 for(int i = 0; i < blob.size()-rest; i++){
                     vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
                 }
-                image->setColorTable(vectorColors);
+                image.setColorTable(vectorColors);
             }
-            imageArea->setPixmap(pixmap.fromImage(*image));
+            imageArea->setPixmap(pixmap.fromImage(image));
             break;
         }
         default:
@@ -608,17 +622,30 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *e)
     ui->saveAreaButton->setEnabled(true);
 }
 
-void MainWindow::on_saveAreaButton_clicked()
+bool MainWindow::on_saveAreaButton_clicked()
 {
 
 
-    if(!image->isNull()){
+    if(!image.isNull()){
+        image = image.copy(rubberBand->geometry());
+        saveFile(curFile);
+        ui->saveAreaButton->setEnabled(false);
+        return true;
 
     }
     if(!pixmap.isNull()){
-        pixmap.copy(rubberBand->geometry());
+        pixmap = pixmap.copy(rubberBand->geometry());
+        saveFile(curFile);
+        ui->saveAreaButton->setEnabled(false);
+        return true;
     }
-    saveFile(curFile);
-    ui->saveAreaButton->setEnabled(false);
+    if(!bitmap.isNull()){
+        bitmap = bitmap.copy(rubberBand->geometry());
+        saveFile(curFile);
+        ui->saveAreaButton->setEnabled(false);
+        return true;
+    }
 
+
+    return false;
 }

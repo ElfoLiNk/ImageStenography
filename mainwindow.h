@@ -74,7 +74,7 @@ private slots:
 
     void on_twentyfourBitButton_clicked();
 
-    void on_saveAreaButton_clicked();
+    bool on_saveAreaButton_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -110,7 +110,7 @@ private:
     QString paletteFile;
     QBitmap bitmap;
     QPixmap pixmap;
-    QImage *image;
+    QImage image;
     QVector<QImage> imageSnapshot;
     int valueContrast;
     int valueBrightness;
