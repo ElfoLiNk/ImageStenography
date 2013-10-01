@@ -19,7 +19,7 @@ signals:
     void setFileName(QString fileName);
     void setPaletteName(QString fileName);
     void openFile();
-    void fileBitFormat(const int&);
+    void fileBitFormat(int);
     
 private slots:
     void on_pushButton_clicked();

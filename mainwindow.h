@@ -6,6 +6,7 @@
 #include <QBitmap>
 #include <QScrollArea>
 #include <QRubberBand>
+#include <QBitArray>
 #include <openfiledialog.h>
 
 
@@ -102,6 +103,7 @@ private:
     QImage brighten(QImage& source, int factor);
     QByteArray convertToPGM(char* img_buffer, int size, int scale);
     void setSizeImage();
+    QBitArray toQBit (QByteArray blob);
 
     double scaleFactor;
 
@@ -120,6 +122,7 @@ private:
     bool isContrast;
     int bitFormat;
     QByteArray blob;
+    QBitArray bitblob;
     QVector<QRgb> vectorColors;
 
     QRubberBand *rubberBand;

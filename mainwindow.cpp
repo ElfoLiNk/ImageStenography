@@ -8,6 +8,10 @@
 #include <QScrollBar>
 #include <QMouseEvent>
 #include <QRubberBand>
+#include <QTextStream>
+#include <QDesktopWidget>
+#include <QGuiApplication>
+#include <QScreen>
 
 #include "imagefilter.cpp"
 #include "mainwindow.h"
@@ -34,8 +38,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->scrollArea->setWidget(imageArea);
     ui->scrollArea->resize(500,400);
 
+    QDesktopWidget *desktop = QApplication::desktop();
 
-    rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+    rubberBand = new QRubberBand(QRubberBand::Rectangle, desktop);
 
     // AboutQt Signal
     connect(ui->actionAbout_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
@@ -50,23 +55,39 @@ MainWindow::~MainWindow()
 
 void MainWindow::open()
 {
+    if(!paletteFile.isEmpty()){
+        QFile file(paletteFile);
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
+                                 tr("Cannot open file %1:\n%2.")
+                                 .arg(file.fileName())
+                                 .arg(file.errorString()));
+        }
+        QTextStream ts(&file);
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+
+        // Parsing line
+        // Example: byte_in_input_hex rosso_hex verde_hex blu_hex
+        do {
+            // Read a line of the palette file
+            QString element = ts.readLine();
+            // Split line by white space
+            QStringList hexlist = element.split(" ");
+
+            // Adding RGB to colour table
+            bool ok;
+            vectorColors.append(qRgb(hexlist.at(1).toInt(&ok,16),hexlist.at(2).toInt(&ok,16),hexlist.at(3).toInt(&ok,16)));
+        } while (!ts.atEnd());
+        QApplication::restoreOverrideCursor();
+    }
+
+
     if (!curFile.isEmpty()){
         if(loadFile(curFile)){
             drawImage();
         }
     }
     openFileDialog = 0;
-
-
-    if (!paletteFile.isEmpty()){
-        if(loadFile(paletteFile)){
-            char *pointer = blob.data();
-            for(int i = 0; i < blob.size();i++ ){
-                vectorColors[i] = qRgb(*pointer, *pointer+1, *pointer+2);
-            }
-        }
-    }
-
 
 }
 
@@ -123,22 +144,6 @@ bool MainWindow::saveFile(const QString &fileName)
 }
 bool MainWindow::writeFile(const QString &fileName)
 {
-    //    QFile file(fileName);
-    //    if (!file.open(QIODevice::WriteOnly)) {
-    //        QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
-    //                             tr("Cannot write file %1:\n%2.")
-    //                             .arg(file.fileName())
-    //                             .arg(file.errorString()));
-    //        return false;
-    //    }
-    //    QDataStream out(&file);
-    //    out.setVersion(QDataStream::Qt_5_1);
-    //    QApplication::setOverrideCursor(Qt::WaitCursor);
-    //    out << image;
-    //    QApplication::restoreOverrideCursor();
-
-
-    //    return true;
     if(!pixmap.isNull()){
         QFile file(fileName+".png");
         if (!file.open(QIODevice::WriteOnly)) {
@@ -212,6 +217,11 @@ void MainWindow::on_actionFile_triggered()
         openFileDialog->raise();
         openFileDialog->activateWindow();
 
+        connect(openFileDialog,SIGNAL(fileBitFormat(int)), this,SLOT(setBitFormat(int)));
+        connect(openFileDialog,SIGNAL(openFile()),this,SLOT(open()));
+        connect(openFileDialog, SIGNAL(setFileName(const QString&)), this, SLOT(setCurrentFile(const QString&)) );
+        connect(openFileDialog, SIGNAL(setPaletteName(const QString&)), this, SLOT(setPaletteFile(const QString&)) );
+
     }
     openFileDialog = 0;
 }
@@ -283,19 +293,19 @@ void MainWindow::setBitFormat(int bitformat){
     bitFormat = bitformat;
     switch(bitformat){
     case 1:
-        ui->oneBitButton->setChecked(true);
+        this->ui->oneBitButton->setChecked(true);
         break;
     case 4:
-        ui->oneBitButton->setChecked(true);
+        this->ui->fourBitButton->setChecked(true);
         break;
     case 8:
-        ui->oneBitButton->setChecked(true);
+        this->ui->eightBitButton->setChecked(true);
         break;
     case 16:
-        ui->oneBitButton->setChecked(true);
+        this->ui->sixteenBitButton->setChecked(true);
         break;
     case 24:
-        ui->oneBitButton->setChecked(true);
+        this->ui->twentyfourBitButton->setChecked(true);
         break;
     }
 }
@@ -334,7 +344,7 @@ void MainWindow::drawImage(){
         case 8:
         {
             if(!vectorColors.isEmpty()){
-                QImage image(width, height, QImage::Format_RGB888);
+                image = QImage(width, height, QImage::Format_RGB888);
                 image.setColorTable(vectorColors);
                 imageArea->resize(width,height);
                 imageArea->setPixmap(pixmap.fromImage(image));
@@ -361,9 +371,42 @@ void MainWindow::drawImage(){
         case 16:
         {
             imageArea->resize(width,height);
-            QImage image(height, width, QImage::Format_ARGB4444_Premultiplied);
+            image = QImage(height, width, QImage::Format_RGB444);
+            bitblob = toQBit(blob);
+            // Divisibile per 2
+            if((blob.size() - 1)%2 == 0){
 
-            //imageArea->setPixmap(pixmap.fromImage(image));
+                for(int i = 0; i < blob.size()-1; i++){
+                    uint trasparency = (blob.at(i)&0x0F);
+                    uint scale = trasparency/16;
+                    uint red = (blob.at(i)&0xF0)>>4;
+                    uint green = blob.at(i+1)&0x0F;
+                    uint blue = (blob.at(i+1)&0xF0)>>4;
+                    if(scale == 0){
+                        vectorColors.append(qRgb(red, green, blue));
+                    }else{
+                        vectorColors.append(qRgb(red*scale, green*scale, blue*scale));
+                    }
+                }
+                image.setColorTable(vectorColors);
+                // Non divisibile per 2 ignoro i byte spaiati
+            }else{
+                int rest = (blob.size() - 1)%2;
+                for(int i = 0; i < blob.size()-rest; i++){
+                    uint trasparency = (blob.at(i)&0x0F);
+                    uint scale = trasparency/16;
+                    uint red = (blob.at(i)&0xF0)>>4;
+                    uint green = blob.at(i+1)&0x0F;
+                    uint blue = (blob.at(i+1)&0xF0)>>4;
+                    if(scale == 0){
+                        vectorColors.append(qRgb(red, green, blue));
+                    }else{
+                        vectorColors.append(qRgb(red*scale, green*scale, blue*scale));
+                    }
+                }
+                image.setColorTable(vectorColors);
+            }
+            imageArea->setPixmap(pixmap.fromImage(image));
             break;
         }
         case 24:
@@ -385,7 +428,9 @@ void MainWindow::drawImage(){
                 }
                 image.setColorTable(vectorColors);
             }
+
             imageArea->setPixmap(pixmap.fromImage(image));
+
             break;
         }
         default:
@@ -620,32 +665,43 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *e)
 {
     rubberBand->hide();
     ui->saveAreaButton->setEnabled(true);
+
 }
 
 bool MainWindow::on_saveAreaButton_clicked()
 {
+    QDesktopWidget *desktop = QApplication::desktop();
+    QPixmap screenshot = QGuiApplication::primaryScreen()->grabWindow(desktop->winId(), 0, 0, desktop->width(), desktop->height());
 
-
-    if(!image.isNull()){
-        image = image.copy(rubberBand->geometry());
-        saveFile(curFile);
+    if(!screenshot.isNull()){
+        screenshot = screenshot.copy(rubberBand->geometry());
         ui->saveAreaButton->setEnabled(false);
-        return true;
-
-    }
-    if(!pixmap.isNull()){
-        pixmap = pixmap.copy(rubberBand->geometry());
-        saveFile(curFile);
-        ui->saveAreaButton->setEnabled(false);
-        return true;
-    }
-    if(!bitmap.isNull()){
-        bitmap = bitmap.copy(rubberBand->geometry());
-        saveFile(curFile);
-        ui->saveAreaButton->setEnabled(false);
+        QFile file(curFile+".png");
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
+                                 tr("Cannot write file %1:\n%2.")
+                                 .arg(file.fileName())
+                                 .arg(file.errorString()));
+            return false;
+        }
+        screenshot.save(&file, "PNG");
         return true;
     }
-
 
     return false;
+}
+
+
+QBitArray MainWindow::toQBit (QByteArray blob) {
+    int const bitsInByte= 8;
+    int const bytsInObject= blob.size();
+
+    const char *data = blob.data() ;
+    QBitArray result(bytsInObject*bitsInByte);
+    for ( int byte=0; byte<bytsInObject ; ++byte ) {
+        for ( int bit=0; bit<bitsInByte; ++bit ) {
+            result.setBit ( byte*bitsInByte + bit, data[byte] & (1<<bit) ) ;
+        }
+    }
+    return result;
 }

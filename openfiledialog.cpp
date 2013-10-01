@@ -1,6 +1,5 @@
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QTextStream>
 
 #include "mainwindow.h"
 #include "openfiledialog.h"
@@ -13,10 +12,6 @@ OpenFileDialog::OpenFileDialog(QWidget *parent) :
     ui->setupUi(this);
     ui->buttonBox->setEnabled(false);
     setWindowTitle(tr("OpenBlob - ProgettoPiattaformeSW"));
-    connect(this,SIGNAL(openFile()),this->parent(),SLOT(open()));
-    connect(this, SIGNAL(setFileName(const QString&)), this->parent(), SLOT(setCurrentFile(const QString&)) );
-    connect(this, SIGNAL(setPaletteName(const QString&)), this->parent(), SLOT(setPaletteFile(const QString&)) );
-    connect(this, SIGNAL(fileBitFormat(const int&)), this->parent(), SLOT(setBitFormat(const int&)) );
 }
 
 OpenFileDialog::~OpenFileDialog()
@@ -40,32 +35,6 @@ void OpenFileDialog::on_paletteButton_clicked()
     paletteName = QFileDialog::getOpenFileName(this,
                                                tr("Open Palette"), ".",
                                                tr("Palette (*.txt)"));
-    if(!paletteName.isEmpty()){
-        QFile file(fileName);
-        if (!file.open(QIODevice::WriteOnly)) {
-            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
-                                 tr("Cannot open file %1:\n%2.")
-                                 .arg(file.fileName())
-                                 .arg(file.errorString()));
-        }
-        QTextStream ts(&file);
-        QVector<QRgb> vectorColors;
-        QApplication::setOverrideCursor(Qt::WaitCursor);
-
-        // Parsing line
-        // Example: byte_in_input_hex rosso_hex verde_hex blu_hex
-        do {
-            // Read a line of the palette file
-            QString element = ts.readLine();
-            // Split line by white space
-            QStringList hexlist = element.split(" ");
-
-            // Adding RGB to colour table
-            bool ok;
-            vectorColors.append(qRgb(hexlist.at(1).toInt(&ok,16),hexlist.at(2).toInt(&ok,16),hexlist.at(3).toInt(&ok,16)));
-        } while (!ts.atEnd());
-        QApplication::restoreOverrideCursor();
-    }
 }
 
 void OpenFileDialog::on_buttonBox_accepted()
