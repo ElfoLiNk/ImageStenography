@@ -7,6 +7,7 @@
 #include <QScrollArea>
 #include <QRubberBand>
 #include <QBitArray>
+#include <QColorDialog>
 #include <openfiledialog.h>
 
 
@@ -77,6 +78,8 @@ private slots:
 
     bool on_saveAreaButton_clicked();
 
+    void on_pixelFillpushButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -128,6 +131,7 @@ private:
     QRubberBand *rubberBand;
     QRect selectionRect;
     QPoint origin;
+    QColor colorPixFake;
 
 
 };

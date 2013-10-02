@@ -12,6 +12,7 @@
 #include <QDesktopWidget>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QColorDialog>
 
 #include "imagefilter.cpp"
 #include "mainwindow.h"
@@ -38,9 +39,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->scrollArea->setWidget(imageArea);
     ui->scrollArea->resize(500,400);
 
-    QDesktopWidget *desktop = QApplication::desktop();
+    colorPixFake = Qt::green;
+    ui->colorLabel->setText(colorPixFake.name());
+    ui->colorLabel->setPalette(QPalette(colorPixFake));
+    ui->colorLabel->setAutoFillBackground(true);
 
-    rubberBand = new QRubberBand(QRubberBand::Rectangle, desktop);
 
     // AboutQt Signal
     connect(ui->actionAbout_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
@@ -217,8 +220,8 @@ void MainWindow::on_actionFile_triggered()
         openFileDialog->raise();
         openFileDialog->activateWindow();
 
-        connect(openFileDialog,SIGNAL(fileBitFormat(int)), this,SLOT(setBitFormat(int)));
-        connect(openFileDialog,SIGNAL(openFile()),this,SLOT(open()));
+        connect(openFileDialog, SIGNAL(fileBitFormat(int)), this,SLOT(setBitFormat(int)));
+        connect(openFileDialog, SIGNAL(openFile()),this,SLOT(open()));
         connect(openFileDialog, SIGNAL(setFileName(const QString&)), this, SLOT(setCurrentFile(const QString&)) );
         connect(openFileDialog, SIGNAL(setPaletteName(const QString&)), this, SLOT(setPaletteFile(const QString&)) );
 
@@ -317,7 +320,7 @@ void MainWindow::drawImage(){
         case 1:
         {
             imageArea->resize(width,height);
-            bitmap = bitmap.fromData(QSize(height,width),(const uchar*)blob.data(),QImage::Format_Mono);
+            bitmap = bitmap.fromData(QSize(width,height),(const uchar*)blob.data(),QImage::Format_Mono);
             imageArea->setPixmap(bitmap);
             break;
         }
@@ -343,9 +346,15 @@ void MainWindow::drawImage(){
         }
         case 8:
         {
-            if(!vectorColors.isEmpty()){
+            if(!paletteFile.isEmpty()){
                 image = QImage(width, height, QImage::Format_RGB888);
-                image.setColorTable(vectorColors);
+                int k = 0;
+                for(int i = 0;i<height;i++){
+                    for(int j= 0; j< width;j++){
+                        image.setPixel(i,j,vectorColors.at(k));
+                        k++;
+                    }
+                }
                 imageArea->resize(width,height);
                 imageArea->setPixmap(pixmap.fromImage(image));
             }else{
@@ -371,63 +380,92 @@ void MainWindow::drawImage(){
         case 16:
         {
             imageArea->resize(width,height);
-            image = QImage(height, width, QImage::Format_RGB444);
-            bitblob = toQBit(blob);
+            image = QImage(width, height, QImage::Format_RGB444);
+            image.fill(colorPixFake.rgb());
+            //bitblob = toQBit(blob);
             // Divisibile per 2
             if((blob.size() - 1)%2 == 0){
 
                 for(int i = 0; i < blob.size()-1; i++){
-                    uint trasparency = (blob.at(i)&0x0F);
+                    uint trasparency = ((quint8)blob.at(i))>>4;
                     uint scale = trasparency/16;
-                    uint red = (blob.at(i)&0xF0)>>4;
-                    uint green = blob.at(i+1)&0x0F;
-                    uint blue = (blob.at(i+1)&0xF0)>>4;
+                    uint red = blob.at(i)&0x0F;
+                    uint green = ((quint8)blob.at(i+1))>>4;
+                    uint blue = blob.at(i+1)&0x0F;
                     if(scale == 0){
                         vectorColors.append(qRgb(red, green, blue));
                     }else{
                         vectorColors.append(qRgb(red*scale, green*scale, blue*scale));
                     }
                 }
-                image.setColorTable(vectorColors);
+                int k = 0;
+                for(int i = 0;i< height;i++){
+                    for(int j= 0; j< width;j++){
+                        image.setPixel(i,j,vectorColors.at(k));
+                        k++;
+                    }
+                }
                 // Non divisibile per 2 ignoro i byte spaiati
             }else{
                 int rest = (blob.size() - 1)%2;
                 for(int i = 0; i < blob.size()-rest; i++){
-                    uint trasparency = (blob.at(i)&0x0F);
+                    uint trasparency = ((quint8)blob.at(i))>>4;
                     uint scale = trasparency/16;
-                    uint red = (blob.at(i)&0xF0)>>4;
-                    uint green = blob.at(i+1)&0x0F;
-                    uint blue = (blob.at(i+1)&0xF0)>>4;
+                    uint red = blob.at(i)&0x0F;
+                    uint green = ((quint8)blob.at(i+1))>>4;
+                    uint blue = blob.at(i+1)&0x0F;
                     if(scale == 0){
                         vectorColors.append(qRgb(red, green, blue));
                     }else{
                         vectorColors.append(qRgb(red*scale, green*scale, blue*scale));
                     }
                 }
-                image.setColorTable(vectorColors);
+                int k = 0;
+                for(int i = 0;i<height;i++){
+                    for(int j= 0; j< width;j++){
+                        image.setPixel(i,j,vectorColors.at(k));
+                        k++;
+                    }
+                }
             }
             imageArea->setPixmap(pixmap.fromImage(image));
             break;
         }
         case 24:
         {
+
             imageArea->resize(width,height);
-            image = QImage(height, width, QImage::Format_RGB888);
+            image = QImage(width, height, QImage::Format_RGB888);
+            image.fill(colorPixFake.rgb());
             // Divisibile per 3
             if((blob.size() - 1)%3 == 0){
 
                 for(int i = 0; i < blob.size()-2; i++){
                     vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
                 }
-                image.setColorTable(vectorColors);
+                int k = 0;
+                for(int i = 0;i<height;i++){
+                    for(int j= 0; j< width;j++){
+                        image.setPixel(i,j,vectorColors.at(k));
+                        k++;
+                    }
+                }
                 // Non divisibile per 3
             }else{
                 int rest = (blob.size() - 1)%3;
                 for(int i = 0; i < blob.size()-rest; i++){
                     vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
                 }
-                image.setColorTable(vectorColors);
+                int k = 0;
+                for(int i = 0;i<height;i++){
+                    for(int j= 0; j< width;j++){
+                        image.setPixel(i,j,vectorColors.at(k));
+                        k++;
+                    }
+                }
             }
+
+            // bool ok = image.loadFromData((const uchar *)blob.data(), QImage::Format_RGB888);
 
             imageArea->setPixmap(pixmap.fromImage(image));
 
@@ -650,7 +688,7 @@ void MainWindow::on_twentyfourBitButton_clicked()
 void MainWindow::mousePressEvent(QMouseEvent *e)
 {
     origin = e->pos();
-
+    rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
     rubberBand->setGeometry(QRect(origin, QSize()));
     rubberBand->show();
 
@@ -664,18 +702,20 @@ void MainWindow::mouseMoveEvent(QMouseEvent *e)
 void MainWindow::mouseReleaseEvent(QMouseEvent *e)
 {
     rubberBand->hide();
-    ui->saveAreaButton->setEnabled(true);
 
 }
 
 bool MainWindow::on_saveAreaButton_clicked()
 {
-    QDesktopWidget *desktop = QApplication::desktop();
-    QPixmap screenshot = QGuiApplication::primaryScreen()->grabWindow(desktop->winId(), 0, 0, desktop->width(), desktop->height());
+    if(ui->imageCheckBox->isChecked()){
+//    QDesktopWidget *desktop = QApplication::desktop();
+//    QPixmap screenshot = QGuiApplication::primaryScreen()->grabWindow(desktop->winId(), 0, 0, desktop->width(), desktop->height());
 
-    if(!screenshot.isNull()){
-        screenshot = screenshot.copy(rubberBand->geometry());
-        ui->saveAreaButton->setEnabled(false);
+//    if(!screenshot.isNull()){
+//        screenshot = screenshot.copy(rubberBand->geometry());
+//        ui->saveAreaButton->setEnabled(false);
+        QPixmap regioncapture = this->grab(rubberBand->geometry());
+
         QFile file(curFile+".png");
         if (!file.open(QIODevice::WriteOnly)) {
             QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
@@ -684,8 +724,14 @@ bool MainWindow::on_saveAreaButton_clicked()
                                  .arg(file.errorString()));
             return false;
         }
-        screenshot.save(&file, "PNG");
+        //screenshot.save(&file, "PNG");
+        regioncapture.save(&file, "PNG");
         return true;
+
+
+//    }
+    }else{
+        // TODO save data of image into a blob
     }
 
     return false;
@@ -704,4 +750,15 @@ QBitArray MainWindow::toQBit (QByteArray blob) {
         }
     }
     return result;
+}
+
+void MainWindow::on_pixelFillpushButton_clicked()
+{
+    colorPixFake = QColorDialog::getColor(Qt::green, this);
+    if (colorPixFake.isValid())
+    {
+        ui->colorLabel->setText(colorPixFake.name());
+        ui->colorLabel->setPalette(QPalette(colorPixFake));
+        ui->colorLabel->setAutoFillBackground(true);
+    }
 }
