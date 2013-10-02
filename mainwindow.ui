@@ -112,6 +112,9 @@
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item>
             <widget class="QRadioButton" name="oneBitButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -125,6 +128,9 @@
            </item>
            <item>
             <widget class="QRadioButton" name="fourBitButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -138,6 +144,9 @@
            </item>
            <item>
             <widget class="QRadioButton" name="eightBitButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -151,6 +160,9 @@
            </item>
            <item>
             <widget class="QRadioButton" name="sixteenBitButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -164,6 +176,9 @@
            </item>
            <item>
             <widget class="QRadioButton" name="twentyfourBitButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -203,6 +218,9 @@
          </item>
          <item>
           <widget class="QSpinBox" name="contrastSpinBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="maximum">
             <number>100</number>
            </property>
@@ -210,6 +228,9 @@
          </item>
          <item>
           <widget class="QSlider" name="contrastSlider">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="maximum">
             <number>100</number>
            </property>
@@ -231,6 +252,9 @@
          </item>
          <item>
           <widget class="QSpinBox" name="brightnessSpinBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="minimum">
             <number>-255</number>
            </property>
@@ -241,6 +265,9 @@
          </item>
          <item>
           <widget class="QSlider" name="brightnessSlider">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="minimum">
             <number>0</number>
            </property>
@@ -278,6 +305,9 @@
          </item>
          <item>
           <widget class="QSpinBox" name="heightSpinBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="minimum">
             <number>1</number>
            </property>
@@ -288,6 +318,9 @@
          </item>
          <item>
           <widget class="QSlider" name="heightSlider">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="minimum">
             <number>1</number>
            </property>
@@ -312,6 +345,9 @@
          </item>
          <item>
           <widget class="QSpinBox" name="widthSpinBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="minimum">
             <number>1</number>
            </property>
@@ -322,6 +358,9 @@
          </item>
          <item>
           <widget class="QSlider" name="widthSlider">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="minimum">
             <number>1</number>
            </property>
@@ -398,6 +437,9 @@
          </item>
          <item>
           <widget class="QCheckBox" name="imageCheckBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Image</string>
            </property>
@@ -405,6 +447,9 @@
          </item>
          <item>
           <widget class="QCheckBox" name="dataCheckBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Data</string>
            </property>

@@ -84,6 +84,21 @@ void MainWindow::open()
         QApplication::restoreOverrideCursor();
     }
 
+    ui->oneBitButton->setEnabled(true);
+    ui->fourBitButton->setEnabled(true);
+    ui->eightBitButton->setEnabled(true);
+    ui->sixteenBitButton->setEnabled(true);
+    ui->twentyfourBitButton->setEnabled(true);
+    ui->brightnessSlider->setEnabled(true);
+    ui->brightnessSpinBox->setEnabled(true);
+    ui->contrastSlider->setEnabled(true);
+    ui->contrastSpinBox->setEnabled(true);
+    ui->heightSlider->setEnabled(true);
+    ui->heightSpinBox->setEnabled(true);
+    ui->widthSlider->setEnabled(true);
+    ui->widthSpinBox->setEnabled(true);
+    ui->imageCheckBox->setEnabled(true);
+    ui->dataCheckBox->setEnabled(true);
 
     if (!curFile.isEmpty()){
         if(loadFile(curFile)){
@@ -328,7 +343,7 @@ void MainWindow::drawImage(){
         {
             int scale = 15;
             imageArea->resize(width,height);
-            QByteArray extracted_datapgm = convertToPGM((char*)blob.data(),blob.size(),scale);
+            QByteArray extracted_datapgm = convertToPGM(blob.data(),blob.size(),scale);
 
             if (extracted_datapgm.isNull())
             {
@@ -346,6 +361,7 @@ void MainWindow::drawImage(){
         }
         case 8:
         {
+            imageArea->resize(width,height);
             if(!paletteFile.isEmpty()){
                 image = QImage(width, height, QImage::Format_RGB888);
                 int k = 0;
@@ -353,14 +369,18 @@ void MainWindow::drawImage(){
                     for(int j= 0; j< width;j++){
                         image.setPixel(i,j,vectorColors.at(k));
                         k++;
+                        if(k>vectorColors.size()){
+                            imageArea->setPixmap(pixmap.fromImage(image));
+                            break;
+                        }
                     }
                 }
                 imageArea->resize(width,height);
                 imageArea->setPixmap(pixmap.fromImage(image));
             }else{
                 int scale = 255;
-                imageArea->resize(width,height);
-                QByteArray extracted_datapgm = convertToPGM((char*)blob.data(),blob.size(),scale);
+
+                QByteArray extracted_datapgm = convertToPGM(blob.data(),blob.size(),scale);
 
                 if (extracted_datapgm.isNull())
                 {
@@ -401,18 +421,22 @@ void MainWindow::drawImage(){
                 int k = 0;
                 for(int i = 0;i< height;i++){
                     for(int j= 0; j< width;j++){
-                        image.setPixel(i,j,vectorColors.at(k));
+                        image.setPixel(j,i,vectorColors.at(k));
                         k++;
+                        if(k>vectorColors.size()){
+                            imageArea->setPixmap(pixmap.fromImage(image));
+                            break;
+                        }
                     }
                 }
                 // Non divisibile per 2 ignoro i byte spaiati
             }else{
                 int rest = (blob.size() - 1)%2;
                 for(int i = 0; i < blob.size()-rest; i++){
-                    uint trasparency = ((quint8)blob.at(i))>>4;
+                    uint trasparency = (blob.at(i))>>4;
                     uint scale = trasparency/16;
                     uint red = blob.at(i)&0x0F;
-                    uint green = ((quint8)blob.at(i+1))>>4;
+                    uint green = (blob.at(i+1))>>4;
                     uint blue = blob.at(i+1)&0x0F;
                     if(scale == 0){
                         vectorColors.append(qRgb(red, green, blue));
@@ -423,8 +447,12 @@ void MainWindow::drawImage(){
                 int k = 0;
                 for(int i = 0;i<height;i++){
                     for(int j= 0; j< width;j++){
-                        image.setPixel(i,j,vectorColors.at(k));
+                        image.setPixel(j,i,vectorColors.at(k));
                         k++;
+                        if(k>vectorColors.size()){
+                            imageArea->setPixmap(pixmap.fromImage(image));
+                            break;
+                        }
                     }
                 }
             }
@@ -444,31 +472,36 @@ void MainWindow::drawImage(){
                     vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
                 }
                 int k = 0;
-                for(int i = 0;i<height;i++){
-                    for(int j= 0; j< width;j++){
-                        image.setPixel(i,j,vectorColors.at(k));
+                for(int i = 0;i < height; i++){
+                    for(int j = 0; j < width; j++){
+                        image.setPixel(j,i,vectorColors.at(k));
                         k++;
+                        if(k>vectorColors.size()){
+                            imageArea->setPixmap(pixmap.fromImage(image));
+                            break;
+                        }
                     }
                 }
                 // Non divisibile per 3
             }else{
                 int rest = (blob.size() - 1)%3;
-                for(int i = 0; i < blob.size()-rest; i++){
+                for(int i = 0; i < blob.size()- rest; i++){
                     vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
                 }
                 int k = 0;
-                for(int i = 0;i<height;i++){
-                    for(int j= 0; j< width;j++){
-                        image.setPixel(i,j,vectorColors.at(k));
+                for(int i = 0;i < height;i++){
+                    for(int j = 0; j < width;j++){
+                        image.setPixel(j,i,vectorColors.at(k));
                         k++;
+                        if(k>vectorColors.size()){
+                            imageArea->setPixmap(pixmap.fromImage(image));
+                            break;
+                        }
                     }
                 }
             }
 
-            // bool ok = image.loadFromData((const uchar *)blob.data(), QImage::Format_RGB888);
-
             imageArea->setPixmap(pixmap.fromImage(image));
-
             break;
         }
         default:
@@ -708,12 +741,12 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *e)
 bool MainWindow::on_saveAreaButton_clicked()
 {
     if(ui->imageCheckBox->isChecked()){
-//    QDesktopWidget *desktop = QApplication::desktop();
-//    QPixmap screenshot = QGuiApplication::primaryScreen()->grabWindow(desktop->winId(), 0, 0, desktop->width(), desktop->height());
+        //    QDesktopWidget *desktop = QApplication::desktop();
+        //    QPixmap screenshot = QGuiApplication::primaryScreen()->grabWindow(desktop->winId(), 0, 0, desktop->width(), desktop->height());
 
-//    if(!screenshot.isNull()){
-//        screenshot = screenshot.copy(rubberBand->geometry());
-//        ui->saveAreaButton->setEnabled(false);
+        //    if(!screenshot.isNull()){
+        //        screenshot = screenshot.copy(rubberBand->geometry());
+        //        ui->saveAreaButton->setEnabled(false);
         QPixmap regioncapture = this->grab(rubberBand->geometry());
 
         QFile file(curFile+".png");
@@ -729,7 +762,7 @@ bool MainWindow::on_saveAreaButton_clicked()
         return true;
 
 
-//    }
+        //    }
     }else{
         // TODO save data of image into a blob
     }
