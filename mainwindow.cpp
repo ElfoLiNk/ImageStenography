@@ -289,18 +289,24 @@ void MainWindow::on_actionUndo_triggered()
 }
 void MainWindow::on_drawPushButton_clicked()
 {
+    //open();
     if(imageArea->pixmap()){
         imageSnapshot.append(imageArea->pixmap()->toImage());
     }
+
+    vectorColors.clear();
+
+    drawImage();
+
     if(isContrast){
         image = changeContrast(image, valueContrast);
         imageArea->setPixmap(pixmap.fromImage(image));
     } else if(isBrightness){
         image = changeBrightness(image, valueBrightness);
         imageArea->setPixmap(pixmap.fromImage(image));
-    } else {
-        drawImage();
-    }
+    }// else {
+
+    //}
     isBrightness = false;
     isContrast = false;
     ui->drawPushButton->setEnabled(false);
@@ -337,6 +343,7 @@ void MainWindow::drawImage(){
             imageArea->resize(width,height);
             bitmap = bitmap.fromData(QSize(width,height),(const uchar*)blob.data(),QImage::Format_Mono);
             imageArea->setPixmap(bitmap);
+            image = bitmap.toImage();
             break;
         }
         case 4:
@@ -357,6 +364,7 @@ void MainWindow::drawImage(){
                 QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),"ERROR pixmap load from data");
 
             }
+            image = pixmap.toImage();
             break;
         }
         case 8:
@@ -388,6 +396,7 @@ void MainWindow::drawImage(){
                 }
 
                 bool ok = pixmap.loadFromData(extracted_datapgm, "pgm");
+                imageArea->setPixmap(pixmap);
                 if(ok){
                     imageArea->setPixmap(pixmap);
                 } else{
@@ -395,6 +404,7 @@ void MainWindow::drawImage(){
 
                 }
             }
+            image = pixmap.toImage();
             break;
         }
         case 16:
@@ -404,11 +414,11 @@ void MainWindow::drawImage(){
             image.fill(colorPixFake.rgb());
             //bitblob = toQBit(blob);
             // Divisibile per 2
-            if((blob.size() - 1)%2 == 0){
+            if(blob.size()%2 == 0){
 
                 for(int i = 0; i < blob.size()-1; i++){
                     uint trasparency = ((quint8)blob.at(i))>>4;
-                    uint scale = trasparency/16;
+                    uint scale = trasparency;
                     uint red = blob.at(i)&0x0F;
                     uint green = ((quint8)blob.at(i+1))>>4;
                     uint blue = blob.at(i+1)&0x0F;
@@ -431,10 +441,10 @@ void MainWindow::drawImage(){
                 }
                 // Non divisibile per 2 ignoro i byte spaiati
             }else{
-                int rest = (blob.size() - 1)%2;
+                int rest = blob.size()%2;
                 for(int i = 0; i < blob.size()-rest; i++){
                     uint trasparency = (blob.at(i))>>4;
-                    uint scale = trasparency/16;
+                    uint scale = trasparency;
                     uint red = blob.at(i)&0x0F;
                     uint green = (blob.at(i+1))>>4;
                     uint blue = blob.at(i+1)&0x0F;
@@ -466,9 +476,9 @@ void MainWindow::drawImage(){
             image = QImage(width, height, QImage::Format_RGB888);
             image.fill(colorPixFake.rgb());
             // Divisibile per 3
-            if((blob.size() - 1)%3 == 0){
+            if(blob.size()%3 == 0){
 
-                for(int i = 0; i < blob.size()-2; i++){
+                for(int i = 0; i < blob.size() - 2; i++){
                     vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
                 }
                 int k = 0;
@@ -484,7 +494,7 @@ void MainWindow::drawImage(){
                 }
                 // Non divisibile per 3
             }else{
-                int rest = (blob.size() - 1)%3;
+                int rest = blob.size()%3;
                 for(int i = 0; i < blob.size()- rest; i++){
                     vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
                 }
@@ -526,7 +536,7 @@ void MainWindow::setSizeImage(){
         switch(bitFormat){
         case 1:
         {
-            height = sqrt(blob.size()*8) + 1;
+            height = sqrt(blob.size()*8);
             ui->heightSlider->setValue(height);
             width = height;
             ui->widthSlider->setValue(width);
@@ -534,7 +544,7 @@ void MainWindow::setSizeImage(){
         }
         case 4:
         {
-            height = sqrt(blob.size()*8)/4 + 1;
+            height = sqrt(blob.size()*2);
             ui->heightSlider->setValue(height);
             width = height;
             ui->widthSlider->setValue(width);
@@ -542,7 +552,7 @@ void MainWindow::setSizeImage(){
         }
         case 8:
         {
-            height = sqrt(blob.size()) + 1;
+            height = sqrt(blob.size());
             ui->heightSlider->setValue(height);
             width = height;
             ui->widthSlider->setValue(width);
@@ -550,7 +560,7 @@ void MainWindow::setSizeImage(){
         }
         case 16:
         {
-            height = sqrt(blob.size()*8)/16 + 1;
+            height = sqrt(blob.size()/2);
             ui->heightSlider->setValue(height);
             width = height;
             ui->widthSlider->setValue(width);
@@ -558,7 +568,7 @@ void MainWindow::setSizeImage(){
         }
         case 24:
         {
-            height = sqrt(blob.size()*8)/24 + 1;
+            height = sqrt(blob.size()/3);
             ui->heightSlider->setValue(height);
             width = height;
             ui->widthSlider->setValue(width);
@@ -605,12 +615,25 @@ QByteArray MainWindow::convertToPGM(char* img_buffer, int size,int scale)
     QByteArray pgm;
     QByteArray raw;
     QDataStream out(&raw,QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_5_1);
+    out.setVersion(QDataStream::Qt_5_2);
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    for (int i = 0; i < size; i++){
-        out.writeRawData(img_buffer+i, sizeof(uchar));
+    for (int i = 0; i < height*width; i++){
+
+        if(bitFormat == 8){
+            out.writeRawData(img_buffer+i, sizeof(uchar));
+        } else{
+
+            const char nibble1=img_buffer[i]&0x0F;
+            const char nibble2=img_buffer[i]>>4;
+
+            out.writeRawData(&nibble1, sizeof(uchar));
+            out.writeRawData(&nibble2, sizeof(uchar));
+
+        }
     }
     QApplication::restoreOverrideCursor();
+
+    QString scaleS = QString::number(scale);
 
     pgm.clear();
     pgm.append("P5 ");
@@ -618,7 +641,7 @@ QByteArray MainWindow::convertToPGM(char* img_buffer, int size,int scale)
     pgm.append(" ");
     pgm.append(QString::number(height));
     pgm.append(" ");
-    pgm.append(QString::number(scale));
+    pgm.append(scaleS);
     pgm.append("\n");
     pgm.append(raw);
 
@@ -688,6 +711,8 @@ void MainWindow::on_oneBitButton_clicked()
     bitFormat = 1;
     ui->drawPushButton->setEnabled(true);
     setSizeImage();
+    ui->brightnessSlider->setValue(0);
+    ui->contrastSlider->setValue(0);
 }
 
 void MainWindow::on_fourBitButton_clicked()
@@ -695,6 +720,8 @@ void MainWindow::on_fourBitButton_clicked()
     bitFormat = 4;
     ui->drawPushButton->setEnabled(true);
     setSizeImage();
+    ui->brightnessSlider->setValue(0);
+    ui->contrastSlider->setValue(0);
 }
 
 void MainWindow::on_eightBitButton_clicked()
@@ -702,6 +729,8 @@ void MainWindow::on_eightBitButton_clicked()
     bitFormat = 8;
     ui->drawPushButton->setEnabled(true);
     setSizeImage();
+    ui->brightnessSlider->setValue(0);
+    ui->contrastSlider->setValue(0);
 }
 
 void MainWindow::on_sixteenBitButton_clicked()
@@ -709,6 +738,8 @@ void MainWindow::on_sixteenBitButton_clicked()
     bitFormat = 16;
     ui->drawPushButton->setEnabled(true);
     setSizeImage();
+    ui->brightnessSlider->setValue(0);
+    ui->contrastSlider->setValue(0);
 }
 
 void MainWindow::on_twentyfourBitButton_clicked()
@@ -716,6 +747,8 @@ void MainWindow::on_twentyfourBitButton_clicked()
     bitFormat = 24;
     ui->drawPushButton->setEnabled(true);
     setSizeImage();
+    ui->brightnessSlider->setValue(0);
+    ui->contrastSlider->setValue(0);
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *e)
