@@ -122,16 +122,33 @@
         </spacer>
        </item>
        <item>
-        <widget class="QDialogButtonBox" name="buttonBox">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Offset:</string>
          </property>
-         <property name="standardButtons">
-          <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <number>999999999</number>
          </property>
         </widget>
        </item>
       </layout>
+     </item>
+     <item row="3" column="0">
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -145,7 +162,6 @@
   <tabstop>eightBitButton</tabstop>
   <tabstop>sixteenBitButton</tabstop>
   <tabstop>twentyfourBitButton</tabstop>
-  <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -156,8 +172,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>388</x>
-     <y>256</y>
+     <x>389</x>
+     <y>289</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -172,8 +188,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>388</x>
-     <y>256</y>
+     <x>389</x>
+     <y>289</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -189,11 +205,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>86</x>
-     <y>164</y>
+     <y>149</y>
     </hint>
     <hint type="destinationlabel">
-     <x>388</x>
-     <y>256</y>
+     <x>389</x>
+     <y>289</y>
     </hint>
    </hints>
   </connection>
@@ -205,11 +221,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>159</x>
-     <y>164</y>
+     <y>149</y>
     </hint>
     <hint type="destinationlabel">
-     <x>388</x>
-     <y>256</y>
+     <x>389</x>
+     <y>289</y>
     </hint>
    </hints>
   </connection>
@@ -221,11 +237,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>233</x>
-     <y>164</y>
+     <y>149</y>
     </hint>
     <hint type="destinationlabel">
-     <x>388</x>
-     <y>256</y>
+     <x>389</x>
+     <y>289</y>
     </hint>
    </hints>
   </connection>
@@ -237,11 +253,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>306</x>
-     <y>164</y>
+     <y>149</y>
     </hint>
     <hint type="destinationlabel">
-     <x>388</x>
-     <y>256</y>
+     <x>389</x>
+     <y>289</y>
     </hint>
    </hints>
   </connection>
@@ -253,11 +269,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>379</x>
-     <y>164</y>
+     <y>149</y>
     </hint>
     <hint type="destinationlabel">
-     <x>367</x>
-     <y>256</y>
+     <x>377</x>
+     <y>289</y>
     </hint>
    </hints>
   </connection>
@@ -268,12 +284,92 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>186</x>
-     <y>156</y>
+     <x>233</x>
+     <y>149</y>
     </hint>
     <hint type="destinationlabel">
-     <x>66</x>
-     <y>247</y>
+     <x>77</x>
+     <y>231</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>oneBitButton</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>spinBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>77</x>
+     <y>136</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>363</x>
+     <y>218</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>fourBitButton</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>spinBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>155</x>
+     <y>133</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>335</x>
+     <y>215</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>eightBitButton</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>spinBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>204</x>
+     <y>134</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>351</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sixteenBitButton</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>spinBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>268</x>
+     <y>139</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>324</x>
+     <y>215</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>twentyfourBitButton</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>spinBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>328</x>
+     <y>140</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>320</x>
+     <y>224</y>
     </hint>
    </hints>
   </connection>

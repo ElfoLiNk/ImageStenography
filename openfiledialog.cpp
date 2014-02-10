@@ -1,5 +1,6 @@
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QInputDialog>
 
 #include "mainwindow.h"
 #include "openfiledialog.h"
@@ -40,6 +41,7 @@ void OpenFileDialog::on_paletteButton_clicked()
 void OpenFileDialog::on_buttonBox_accepted()
 {
     emit setFileName(fileName);
+    emit setOffset(offset);
     emit setPaletteName(paletteName);
     int bitFormat = findBitFormat();
     emit fileBitFormat(bitFormat);
@@ -66,3 +68,8 @@ int OpenFileDialog::findBitFormat(){
     return -1;
 }
 
+
+void OpenFileDialog::on_spinBox_valueChanged(int value)
+{
+    offset = value;
+}

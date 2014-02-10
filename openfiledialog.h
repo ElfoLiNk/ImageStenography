@@ -18,6 +18,7 @@ public:
 signals:
     void setFileName(QString fileName);
     void setPaletteName(QString fileName);
+    void setOffset(int offset);
     void openFile();
     void fileBitFormat(int);
     
@@ -28,6 +29,7 @@ private slots:
 
     void on_paletteButton_clicked();
 
+    void on_spinBox_valueChanged(int value);
 
 private:
     Ui::OpenFileDialog *ui;
@@ -36,6 +38,7 @@ private:
 
     QString fileName;
     QString paletteName;
+    int offset;
 };
 
 #endif // OPENFILEDIALOG_H

@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     openFileDialog = 0;
+    rubberBand = NULL;
 
     //setWindowIcon(QIcon(":/images/icon.png"));
     setCurrentFile("");
@@ -89,6 +90,8 @@ void MainWindow::open()
     ui->eightBitButton->setEnabled(true);
     ui->sixteenBitButton->setEnabled(true);
     ui->twentyfourBitButton->setEnabled(true);
+    ui->offsetSpinBox->setEnabled(true);
+    ui->offsetSlider->setEnabled(true);
     ui->brightnessSlider->setEnabled(true);
     ui->brightnessSpinBox->setEnabled(true);
     ui->contrastSlider->setEnabled(true);
@@ -100,12 +103,21 @@ void MainWindow::open()
     ui->imageCheckBox->setEnabled(true);
     ui->dataCheckBox->setEnabled(true);
 
+
+
     if (!curFile.isEmpty()){
         if(loadFile(curFile)){
+            offsetonce = true;
+            ui->offsetSpinBox->setRange(0,blob.size());
+            ui->offsetSlider->setRange(0,blob.size());
+            ui->offsetSlider->setValue(offset);
+            backupBlob();
             drawImage();
         }
     }
     openFileDialog = 0;
+
+
 
 }
 
@@ -134,6 +146,10 @@ bool MainWindow::readFile(const QString &fileName)
     blob = file.readAll();
     QApplication::restoreOverrideCursor();
 
+    ui->widthSpinBox->setRange(0,blob.size() - 1 );
+    ui->widthSlider->setRange(0,blob.size() - 1 );
+    ui->heightSlider->setRange(0,blob.size() - 1 );
+    ui->heightSpinBox->setRange(0,blob.size() - 1 );
     setSizeImage();
 
     //        quint32 word = 0;
@@ -216,6 +232,10 @@ void MainWindow::setPaletteFile(const QString &fileName){
     paletteFile = fileName;
 
 }
+void MainWindow::setOffset(int value){
+    offset = value;
+    ui->offsetSpinBox->setValue(offset);
+}
 
 QString MainWindow::strippedName(const QString &fullFileName)
 {
@@ -239,7 +259,7 @@ void MainWindow::on_actionFile_triggered()
         connect(openFileDialog, SIGNAL(openFile()),this,SLOT(open()));
         connect(openFileDialog, SIGNAL(setFileName(const QString&)), this, SLOT(setCurrentFile(const QString&)) );
         connect(openFileDialog, SIGNAL(setPaletteName(const QString&)), this, SLOT(setPaletteFile(const QString&)) );
-
+        connect(openFileDialog, SIGNAL(setOffset(int)), this, SLOT(setOffset(int)) );
     }
     openFileDialog = 0;
 }
@@ -289,12 +309,11 @@ void MainWindow::on_actionUndo_triggered()
 }
 void MainWindow::on_drawPushButton_clicked()
 {
-    //open();
+
     if(imageArea->pixmap()){
         imageSnapshot.append(imageArea->pixmap()->toImage());
     }
-
-    vectorColors.clear();
+              vectorColors.clear();
 
     drawImage();
 
@@ -304,12 +323,13 @@ void MainWindow::on_drawPushButton_clicked()
     } else if(isBrightness){
         image = changeBrightness(image, valueBrightness);
         imageArea->setPixmap(pixmap.fromImage(image));
-    }// else {
 
-    //}
-    isBrightness = false;
-    isContrast = false;
-    ui->drawPushButton->setEnabled(false);
+    }
+
+
+isBrightness = false;
+isContrast = false;
+ui->drawPushButton->setEnabled(false);
 }
 
 
@@ -336,11 +356,17 @@ void MainWindow::setBitFormat(int bitformat){
 
 
 void MainWindow::drawImage(){
+    restoreBlob();
+    if(offset > 0 && offsetonce){
+        blob.remove(0,offset);
+        offsetonce = false;
+    }
     if(!blob.isEmpty()){
         switch(bitFormat){
         case 1:
         {
             imageArea->resize(width,height);
+            bitmap.fill(colorPixFake.rgb());
             bitmap = bitmap.fromData(QSize(width,height),(const uchar*)blob.data(),QImage::Format_Mono);
             imageArea->setPixmap(bitmap);
             image = bitmap.toImage();
@@ -350,7 +376,8 @@ void MainWindow::drawImage(){
         {
             int scale = 15;
             imageArea->resize(width,height);
-            QByteArray extracted_datapgm = convertToPGM(blob.data(),blob.size(),scale);
+            pixmap.fill(colorPixFake.rgb());
+            QByteArray extracted_datapgm = convertToPGM(blob.data(),scale);
 
             if (extracted_datapgm.isNull())
             {
@@ -388,7 +415,7 @@ void MainWindow::drawImage(){
             }else{
                 int scale = 255;
 
-                QByteArray extracted_datapgm = convertToPGM(blob.data(),blob.size(),scale);
+                QByteArray extracted_datapgm = convertToPGM(blob.data(),scale);
 
                 if (extracted_datapgm.isNull())
                 {
@@ -414,417 +441,476 @@ void MainWindow::drawImage(){
             image.fill(colorPixFake.rgb());
             //bitblob = toQBit(blob);
             // Divisibile per 2
-            if(blob.size()%2 == 0){
+
+                    if(blob.size()%2 == 0){
 
                 for(int i = 0; i < blob.size()-1; i++){
                     uint trasparency = ((quint8)blob.at(i))>>4;
-                    uint scale = trasparency;
-                    uint red = blob.at(i)&0x0F;
-                    uint green = ((quint8)blob.at(i+1))>>4;
-                    uint blue = blob.at(i+1)&0x0F;
-                    if(scale == 0){
-                        vectorColors.append(qRgb(red, green, blue));
+
+                            //uint scale = trasparency/16;
+
+                                    uint scale = trasparency;
+                            uint red = blob.at(i)&0x0F;
+                            uint green = ((quint8)blob.at(i+1))>>4;
+                            uint blue = blob.at(i+1)&0x0F;
+                            if(scale == 0){
+                                vectorColors.append(qRgb(red, green, blue));
+                            }else{
+                                vectorColors.append(qRgb(red*scale, green*scale, blue*scale));
+                            }
+                        }
+                        int k = 0;
+                        for(int i = 0;i< height;i++){
+                            for(int j= 0; j< width;j++){
+                                image.setPixel(j,i,vectorColors.at(k));
+                                k++;
+                                if(k>vectorColors.size()){
+                                    imageArea->setPixmap(pixmap.fromImage(image));
+                                    break;
+                                }
+                            }
+                        }
+                        // Non divisibile per 2 ignoro i byte spaiati
                     }else{
-                        vectorColors.append(qRgb(red*scale, green*scale, blue*scale));
+
+                                int rest = blob.size()%2;
+                        for(int i = 0; i < blob.size()-rest; i++){
+
+                                uint trasparency = (blob.at(i))>>4;
+                                //uint scale = trasparency/16;
+                                        uint scale = trasparency;
+                                uint red = blob.at(i)&0x0F;
+                                uint green = (blob.at(i+1))>>4;
+                                uint blue = blob.at(i+1)&0x0F;
+                                if(scale == 0){
+                                    vectorColors.append(qRgb(red, green, blue));
+                                }else{
+                                    vectorColors.append(qRgb(red*scale, green*scale, blue*scale));
+                                }
+                            }
+                            int k = 0;
+                            for(int i = 0;i<height;i++){
+                                for(int j= 0; j< width;j++){
+                                    image.setPixel(j,i,vectorColors.at(k));
+                                    k++;
+                                    if(k>vectorColors.size()){
+                                        imageArea->setPixmap(pixmap.fromImage(image));
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        imageArea->setPixmap(pixmap.fromImage(image));
+                        break;
                     }
-                }
-                int k = 0;
-                for(int i = 0;i< height;i++){
-                    for(int j= 0; j< width;j++){
-                        image.setPixel(j,i,vectorColors.at(k));
-                        k++;
-                        if(k>vectorColors.size()){
+        case 24:
+                    {
+
+                        imageArea->resize(width,height);
+                        image = QImage(width, height, QImage::Format_RGB888);
+                        image.fill(colorPixFake.rgb());
+                        // Divisibile per 3
+
+                                if(blob.size()%3 == 0){
+
+
+                                        for(int i = 0; i < blob.size() - 2; i++){
+                                    vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
+                                }
+                                int k = 0;
+                                for(int i = 0;i < height; i++){
+                                    for(int j = 0; j < width; j++){
+                                        image.setPixel(j,i,vectorColors.at(k));
+                                        k++;
+                                        if(k>vectorColors.size()){
+                                            imageArea->setPixmap(pixmap.fromImage(image));
+                                            break;
+                                        }
+                                    }
+                                }
+                                // Non divisibile per 3
+                            }else{
+                                        int rest = blob.size()%3;
+                                        for(int i = 0; i < blob.size()- rest; i++){
+                                    vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
+                                }
+                                int k = 0;
+                                for(int i = 0;i < height;i++){
+                                    for(int j = 0; j < width;j++){
+                                        image.setPixel(j,i,vectorColors.at(k));
+                                        k++;
+                                        if(k>vectorColors.size()){
+                                            imageArea->setPixmap(pixmap.fromImage(image));
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
                             imageArea->setPixmap(pixmap.fromImage(image));
                             break;
                         }
-                    }
-                }
-                // Non divisibile per 2 ignoro i byte spaiati
-            }else{
-                int rest = blob.size()%2;
-                for(int i = 0; i < blob.size()-rest; i++){
-                    uint trasparency = (blob.at(i))>>4;
-                    uint scale = trasparency;
-                    uint red = blob.at(i)&0x0F;
-                    uint green = (blob.at(i+1))>>4;
-                    uint blue = blob.at(i+1)&0x0F;
-                    if(scale == 0){
-                        vectorColors.append(qRgb(red, green, blue));
-                    }else{
-                        vectorColors.append(qRgb(red*scale, green*scale, blue*scale));
-                    }
-                }
-                int k = 0;
-                for(int i = 0;i<height;i++){
-                    for(int j= 0; j< width;j++){
-                        image.setPixel(j,i,vectorColors.at(k));
-                        k++;
-                        if(k>vectorColors.size()){
-                            imageArea->setPixmap(pixmap.fromImage(image));
+                    default:
                             break;
                         }
+
+                        scaleFactor = 1.0;
+
+                        ui->actionFit_To_Window->setEnabled(true);
+                        updateActions();
+
+                        if (!ui->actionFit_To_Window->isChecked()){
+                            imageArea->adjustSize();
+                        }
+
+                }
+
+            }
+
+            void MainWindow::setSizeImage(){
+                if(!blob.isEmpty()){
+                    switch(bitFormat){
+                    case 1:
+                    {
+                        height = sqrt(blob.size()*8);
+                        ui->heightSlider->setValue(height);
+                        width = height;
+                        ui->widthSlider->setValue(width);
+
+                        break;
+                    }
+                    case 4:
+                    {
+                        height = sqrt(blob.size()*2);
+                        ui->heightSlider->setValue(height);
+                        width = height;
+                        ui->widthSlider->setValue(width);
+                        break;
+                    }
+                    case 8:
+                    {
+                        height = sqrt(blob.size());
+                        ui->heightSlider->setValue(height);
+                        width = height;
+                        ui->widthSlider->setValue(width);
+                        break;
+                    }
+                    case 16:
+                    {
+                                height = sqrt(blob.size()/2);
+                                ui->heightSlider->setValue(height);
+                        width = height;
+                        ui->widthSlider->setValue(width);
+                        break;
+                    }
+                    case 24:
+                    {
+                                height = sqrt(blob.size()/3);
+                                ui->heightSlider->setValue(height);
+                        width = height;
+                        ui->widthSlider->setValue(width);
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+                }
+
+            }
+
+            void MainWindow::updateActions()
+            {
+                ui->actionZoomIn->setEnabled(!ui->actionFit_To_Window->isChecked());
+                ui->actionZoomOut->setEnabled(!ui->actionFit_To_Window->isChecked());
+                ui->actionNormal_Size->setEnabled(!ui->actionFit_To_Window->isChecked());
+            }
+
+
+            void MainWindow::scaleImage(double factor)
+
+            {
+                Q_ASSERT(imageArea->pixmap());
+                scaleFactor *= factor;
+                imageArea->resize(scaleFactor * imageArea->pixmap()->size());
+
+                adjustScrollBar(ui->scrollArea->horizontalScrollBar(), factor);
+                adjustScrollBar(ui->scrollArea->verticalScrollBar(), factor);
+
+                ui->actionZoomIn->setEnabled(scaleFactor < 3.0);
+                ui->actionZoomOut->setEnabled(scaleFactor > 0.333);
+            }
+
+            void MainWindow::adjustScrollBar(QScrollBar *scrollBar, double factor)
+            {
+                scrollBar->setValue(int(factor * scrollBar->value()
+                                        + ((factor - 1) * scrollBar->pageStep()/2)));
+            }
+
+            QByteArray MainWindow::convertToPGM(char* img_buffer,int scale)
+            {
+
+                QByteArray pgm;
+                QByteArray raw;
+                QDataStream out(&raw,QIODevice::WriteOnly);
+                out.setVersion(QDataStream::Qt_5_2);
+
+                        QApplication::setOverrideCursor(Qt::WaitCursor);
+                for (int i = 0; i < height*width; i++){
+
+                    if(bitFormat == 8){
+                        out.writeRawData(img_buffer+i, sizeof(uchar));
+                    } else{
+
+                        const char nibble1=img_buffer[i]&0x0F;
+                        const char nibble2=img_buffer[i]>>4;
+
+                        out.writeRawData(&nibble1, sizeof(uchar));
+                        out.writeRawData(&nibble2, sizeof(uchar));
+
+                    }
+                }
+
+                        QApplication::restoreOverrideCursor();
+
+                QString scaleS = QString::number(scale);
+
+                pgm.clear();
+                pgm.append("P5 ");
+                pgm.append(QString::number(width));
+                pgm.append(" ");
+                pgm.append(QString::number(height));
+                pgm.append(" ");
+                pgm.append(scaleS);
+                pgm.append("\n");
+                pgm.append(raw);
+
+                return pgm;
+
+            }
+
+
+
+            void MainWindow::on_heightSlider_valueChanged(int value)
+            {
+                height = value;
+                ui->drawPushButton->setEnabled(true);
+                if((height + width) > blob.size()){
+                    int sizeplus = (height + width) - blob.size();
+                    for(int i = 0; i < sizeplus;i++){
+                        width--;
+                    }
+                }
+
+            }
+
+            void MainWindow::on_widthSlider_valueChanged(int value)
+            {
+                width = value;
+                ui->drawPushButton->setEnabled(true);
+                ui->drawPushButton->setEnabled(true);
+
+                if((height + width) > blob.size()){
+                    int sizeplus = (height + width) - blob.size();
+                    for(int i = 0; i < sizeplus;i++){
+                        height--;
                     }
                 }
             }
-            imageArea->setPixmap(pixmap.fromImage(image));
-            break;
-        }
-        case 24:
-        {
 
-            imageArea->resize(width,height);
-            image = QImage(width, height, QImage::Format_RGB888);
-            image.fill(colorPixFake.rgb());
-            // Divisibile per 3
-            if(blob.size()%3 == 0){
+            void MainWindow::on_actionZoomIn_triggered()
+            {
+                QApplication::setOverrideCursor(Qt::WaitCursor);
+                if (!curFile.isEmpty()) {
+                    scaleImage(1.25);
+                }
+                QApplication::restoreOverrideCursor();
+            }
 
-                for(int i = 0; i < blob.size() - 2; i++){
-                    vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
+            void MainWindow::on_actionZoomOut_triggered()
+            {
+                QApplication::setOverrideCursor(Qt::WaitCursor);
+                if (!curFile.isEmpty()) {
+                    scaleImage(0.8);
                 }
-                int k = 0;
-                for(int i = 0;i < height; i++){
-                    for(int j = 0; j < width; j++){
-                        image.setPixel(j,i,vectorColors.at(k));
-                        k++;
-                        if(k>vectorColors.size()){
-                            imageArea->setPixmap(pixmap.fromImage(image));
-                            break;
-                        }
-                    }
+                QApplication::restoreOverrideCursor();
+            }
+
+            void MainWindow::on_actionNormal_Size_triggered()
+            {
+                imageArea->adjustSize();
+                scaleFactor = 1.0;
+            }
+
+            void MainWindow::on_actionFit_To_Window_triggered()
+            {
+                bool fitToWindow = ui->actionFit_To_Window->isChecked();
+                ui->scrollArea->setWidgetResizable(fitToWindow);
+                if (!fitToWindow) {
+                    on_actionNormal_Size_triggered();
                 }
-                // Non divisibile per 3
-            }else{
-                int rest = blob.size()%3;
-                for(int i = 0; i < blob.size()- rest; i++){
-                    vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
-                }
-                int k = 0;
-                for(int i = 0;i < height;i++){
-                    for(int j = 0; j < width;j++){
-                        image.setPixel(j,i,vectorColors.at(k));
-                        k++;
-                        if(k>vectorColors.size()){
-                            imageArea->setPixmap(pixmap.fromImage(image));
-                            break;
-                        }
-                    }
+                updateActions();
+            }
+
+            void MainWindow::on_actionAbout_triggered()
+            {
+                QMessageBox::about(this, tr("About Progetto Piattaforme SW"),
+                                   tr("<p>XXXXX</p>"));
+            }
+
+
+
+            void MainWindow::on_oneBitButton_clicked()
+            {
+                bitFormat = 1;
+                ui->drawPushButton->setEnabled(true);
+                setSizeImage();
+                ui->brightnessSlider->setValue(0);
+
+                        ui->contrastSlider->setValue(0);
+
+              }
+
+            void MainWindow::on_fourBitButton_clicked()
+            {
+                bitFormat = 4;
+                ui->drawPushButton->setEnabled(true);
+                setSizeImage();
+                ui->brightnessSlider->setValue(0);
+
+                ui->contrastSlider->setValue(0);
+
+
+            }
+
+            void MainWindow::on_eightBitButton_clicked()
+            {
+                bitFormat = 8;
+                ui->drawPushButton->setEnabled(true);
+                setSizeImage();
+                ui->brightnessSlider->setValue(0);
+                ui->contrastSlider->setValue(0);
+
+            }
+
+            void MainWindow::on_sixteenBitButton_clicked()
+            {
+                bitFormat = 16;
+                ui->drawPushButton->setEnabled(true);
+                setSizeImage();
+                ui->brightnessSlider->setValue(0);
+
+                        ui->contrastSlider->setValue(0);
+
+            }
+
+            void MainWindow::on_twentyfourBitButton_clicked()
+            {
+                bitFormat = 24;
+                ui->drawPushButton->setEnabled(true);
+                setSizeImage();
+                ui->brightnessSlider->setValue(0);
+                ui->contrastSlider->setValue(0);
+            }
+
+            void MainWindow::mousePressEvent(QMouseEvent *e)
+            {
+
+                if (!rubberBand){
+                    origin = e->pos();
+                    rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+                    rubberBand->setGeometry(QRect(origin, QSize()));
+                    rubberBand->show();
                 }
             }
 
-            imageArea->setPixmap(pixmap.fromImage(image));
-            break;
-        }
-        default:
-            break;
-        }
+            void MainWindow::mouseMoveEvent(QMouseEvent *e)
+            {
+                if (!origin.isNull()){
+                    rubberBand->setGeometry(QRect(origin, e->pos()).normalized());
+                }
+            }
 
-        scaleFactor = 1.0;
-
-        ui->actionFit_To_Window->setEnabled(true);
-        updateActions();
-
-        if (!ui->actionFit_To_Window->isChecked()){
-            imageArea->adjustSize();
-        }
-
-    }
-
-}
-
-void MainWindow::setSizeImage(){
-    if(!blob.isEmpty()){
-        switch(bitFormat){
-        case 1:
-        {
-            height = sqrt(blob.size()*8);
-            ui->heightSlider->setValue(height);
-            width = height;
-            ui->widthSlider->setValue(width);
-            break;
-        }
-        case 4:
-        {
-            height = sqrt(blob.size()*2);
-            ui->heightSlider->setValue(height);
-            width = height;
-            ui->widthSlider->setValue(width);
-            break;
-        }
-        case 8:
-        {
-            height = sqrt(blob.size());
-            ui->heightSlider->setValue(height);
-            width = height;
-            ui->widthSlider->setValue(width);
-            break;
-        }
-        case 16:
-        {
-            height = sqrt(blob.size()/2);
-            ui->heightSlider->setValue(height);
-            width = height;
-            ui->widthSlider->setValue(width);
-            break;
-        }
-        case 24:
-        {
-            height = sqrt(blob.size()/3);
-            ui->heightSlider->setValue(height);
-            width = height;
-            ui->widthSlider->setValue(width);
-            break;
-        }
-        default:
-            break;
-        }
-    }
-
-}
-
-void MainWindow::updateActions()
-{
-    ui->actionZoomIn->setEnabled(!ui->actionFit_To_Window->isChecked());
-    ui->actionZoomOut->setEnabled(!ui->actionFit_To_Window->isChecked());
-    ui->actionNormal_Size->setEnabled(!ui->actionFit_To_Window->isChecked());
-}
+            void MainWindow::mouseReleaseEvent(QMouseEvent *e)
+            {
+                if (!origin.isNull()){
+                    rubberBand->hide();
+                }
 
 
-void MainWindow::scaleImage(double factor)
+            }
 
-{
-    Q_ASSERT(imageArea->pixmap());
-    scaleFactor *= factor;
-    imageArea->resize(scaleFactor * imageArea->pixmap()->size());
+            bool MainWindow::on_saveAreaButton_clicked()
+            {
+                if(ui->imageCheckBox->isChecked()){
+                    //    QDesktopWidget *desktop = QApplication::desktop();
+                    //    QPixmap screenshot = QGuiApplication::primaryScreen()->grabWindow(desktop->winId(), 0, 0, desktop->width(), desktop->height());
 
-    adjustScrollBar(ui->scrollArea->horizontalScrollBar(), factor);
-    adjustScrollBar(ui->scrollArea->verticalScrollBar(), factor);
+                    //    if(!screenshot.isNull()){
+                    //        screenshot = screenshot.copy(rubberBand->geometry());
+                    //        ui->saveAreaButton->setEnabled(false);
+                    QPixmap regioncapture = this->grab(rubberBand->geometry());
 
-    ui->actionZoomIn->setEnabled(scaleFactor < 3.0);
-    ui->actionZoomOut->setEnabled(scaleFactor > 0.333);
-}
-
-void MainWindow::adjustScrollBar(QScrollBar *scrollBar, double factor)
-{
-    scrollBar->setValue(int(factor * scrollBar->value()
-                            + ((factor - 1) * scrollBar->pageStep()/2)));
-}
-
-QByteArray MainWindow::convertToPGM(char* img_buffer, int size,int scale)
-{
-
-    QByteArray pgm;
-    QByteArray raw;
-    QDataStream out(&raw,QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_5_2);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    for (int i = 0; i < height*width; i++){
-
-        if(bitFormat == 8){
-            out.writeRawData(img_buffer+i, sizeof(uchar));
-        } else{
-
-            const char nibble1=img_buffer[i]&0x0F;
-            const char nibble2=img_buffer[i]>>4;
-
-            out.writeRawData(&nibble1, sizeof(uchar));
-            out.writeRawData(&nibble2, sizeof(uchar));
-
-        }
-    }
-    QApplication::restoreOverrideCursor();
-
-    QString scaleS = QString::number(scale);
-
-    pgm.clear();
-    pgm.append("P5 ");
-    pgm.append(QString::number(width));
-    pgm.append(" ");
-    pgm.append(QString::number(height));
-    pgm.append(" ");
-    pgm.append(scaleS);
-    pgm.append("\n");
-    pgm.append(raw);
-
-    return pgm;
-
-}
+                    QFile file(curFile+".png");
+                    if (!file.open(QIODevice::WriteOnly)) {
+                        QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
+                                             tr("Cannot write file %1:\n%2.")
+                                             .arg(file.fileName())
+                                             .arg(file.errorString()));
+                        return false;
+                    }
+                    //screenshot.save(&file, "PNG");
+                    regioncapture.save(&file, "PNG");
+                    rubberBand = NULL;
+                    return true;
 
 
+                    //    }
+                }else{
+                    // TODO save data of image into a blob
+                }
 
-void MainWindow::on_heightSlider_valueChanged(int value)
-{
-    height = value;
-    ui->drawPushButton->setEnabled(true);
-
-}
-
-void MainWindow::on_widthSlider_valueChanged(int value)
-{
-    width = value;
-    ui->drawPushButton->setEnabled(true);
-}
-
-void MainWindow::on_actionZoomIn_triggered()
-{
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    if (!curFile.isEmpty()) {
-        scaleImage(1.25);
-    }
-    QApplication::restoreOverrideCursor();
-}
-
-void MainWindow::on_actionZoomOut_triggered()
-{
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    if (!curFile.isEmpty()) {
-        scaleImage(0.8);
-    }
-    QApplication::restoreOverrideCursor();
-}
-
-void MainWindow::on_actionNormal_Size_triggered()
-{
-    imageArea->adjustSize();
-    scaleFactor = 1.0;
-}
-
-void MainWindow::on_actionFit_To_Window_triggered()
-{
-    bool fitToWindow = ui->actionFit_To_Window->isChecked();
-    ui->scrollArea->setWidgetResizable(fitToWindow);
-    if (!fitToWindow) {
-        on_actionNormal_Size_triggered();
-    }
-    updateActions();
-}
-
-void MainWindow::on_actionAbout_triggered()
-{
-    QMessageBox::about(this, tr("About Progetto Piattaforme SW"),
-                       tr("<p>XXXXX</p>"));
-}
+                return false;
+            }
 
 
+            QBitArray MainWindow::toQBit (QByteArray blob) {
+                int const bitsInByte= 8;
+                int const bytsInObject= blob.size();
 
-void MainWindow::on_oneBitButton_clicked()
-{
-    bitFormat = 1;
-    ui->drawPushButton->setEnabled(true);
-    setSizeImage();
-    ui->brightnessSlider->setValue(0);
-    ui->contrastSlider->setValue(0);
-}
+                const char *data = blob.data() ;
+                QBitArray result(bytsInObject*bitsInByte);
+                for ( int byte=0; byte<bytsInObject ; ++byte ) {
+                    for ( int bit=0; bit<bitsInByte; ++bit ) {
+                        result.setBit ( byte*bitsInByte + bit, data[byte] & (1<<bit) ) ;
+                    }
+                }
+                return result;
+            }
 
-void MainWindow::on_fourBitButton_clicked()
-{
-    bitFormat = 4;
-    ui->drawPushButton->setEnabled(true);
-    setSizeImage();
-    ui->brightnessSlider->setValue(0);
-    ui->contrastSlider->setValue(0);
-}
+            void MainWindow::on_pixelFillpushButton_clicked()
+            {
+                colorPixFake = QColorDialog::getColor(Qt::green, this);
+                if (colorPixFake.isValid())
+                {
+                    ui->colorLabel->setText(colorPixFake.name());
+                    ui->colorLabel->setPalette(QPalette(colorPixFake));
+                    ui->colorLabel->setAutoFillBackground(true);
+                }
+            }
 
-void MainWindow::on_eightBitButton_clicked()
-{
-    bitFormat = 8;
-    ui->drawPushButton->setEnabled(true);
-    setSizeImage();
-    ui->brightnessSlider->setValue(0);
-    ui->contrastSlider->setValue(0);
-}
+            void MainWindow::on_offsetSpinBox_valueChanged(int value)
+            {
+                offsetonce = true;
+                offset = value;
+                ui->drawPushButton->setEnabled(true);
+            }
 
-void MainWindow::on_sixteenBitButton_clicked()
-{
-    bitFormat = 16;
-    ui->drawPushButton->setEnabled(true);
-    setSizeImage();
-    ui->brightnessSlider->setValue(0);
-    ui->contrastSlider->setValue(0);
-}
+            void MainWindow::restoreBlob()
+            {
+                blob = blobBackup;
+            }
 
-void MainWindow::on_twentyfourBitButton_clicked()
-{
-    bitFormat = 24;
-    ui->drawPushButton->setEnabled(true);
-    setSizeImage();
-    ui->brightnessSlider->setValue(0);
-    ui->contrastSlider->setValue(0);
-}
-
-void MainWindow::mousePressEvent(QMouseEvent *e)
-{
-    origin = e->pos();
-    rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
-    rubberBand->setGeometry(QRect(origin, QSize()));
-    rubberBand->show();
-
-}
-
-void MainWindow::mouseMoveEvent(QMouseEvent *e)
-{
-    rubberBand->setGeometry(QRect(origin, e->pos()).normalized());
-}
-
-void MainWindow::mouseReleaseEvent(QMouseEvent *e)
-{
-    rubberBand->hide();
-
-}
-
-bool MainWindow::on_saveAreaButton_clicked()
-{
-    if(ui->imageCheckBox->isChecked()){
-        //    QDesktopWidget *desktop = QApplication::desktop();
-        //    QPixmap screenshot = QGuiApplication::primaryScreen()->grabWindow(desktop->winId(), 0, 0, desktop->width(), desktop->height());
-
-        //    if(!screenshot.isNull()){
-        //        screenshot = screenshot.copy(rubberBand->geometry());
-        //        ui->saveAreaButton->setEnabled(false);
-        QPixmap regioncapture = this->grab(rubberBand->geometry());
-
-        QFile file(curFile+".png");
-        if (!file.open(QIODevice::WriteOnly)) {
-            QMessageBox::warning(this, tr("ProgettoPiattaformeSW"),
-                                 tr("Cannot write file %1:\n%2.")
-                                 .arg(file.fileName())
-                                 .arg(file.errorString()));
-            return false;
-        }
-        //screenshot.save(&file, "PNG");
-        regioncapture.save(&file, "PNG");
-        return true;
-
-
-        //    }
-    }else{
-        // TODO save data of image into a blob
-    }
-
-    return false;
-}
-
-
-QBitArray MainWindow::toQBit (QByteArray blob) {
-    int const bitsInByte= 8;
-    int const bytsInObject= blob.size();
-
-    const char *data = blob.data() ;
-    QBitArray result(bytsInObject*bitsInByte);
-    for ( int byte=0; byte<bytsInObject ; ++byte ) {
-        for ( int bit=0; bit<bitsInByte; ++bit ) {
-            result.setBit ( byte*bitsInByte + bit, data[byte] & (1<<bit) ) ;
-        }
-    }
-    return result;
-}
-
-void MainWindow::on_pixelFillpushButton_clicked()
-{
-    colorPixFake = QColorDialog::getColor(Qt::green, this);
-    if (colorPixFake.isValid())
-    {
-        ui->colorLabel->setText(colorPixFake.name());
-        ui->colorLabel->setPalette(QPalette(colorPixFake));
-        ui->colorLabel->setAutoFillBackground(true);
-    }
-}
+            void MainWindow::backupBlob()
+            {
+                blobBackup = blob;
+            }

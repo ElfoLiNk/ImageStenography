@@ -33,6 +33,7 @@ protected:
 private slots:
     void setCurrentFile(const QString &fileName);
     void setPaletteFile(const QString &fileName);
+    void setOffset(int);
     void setBitFormat(int bitformat);
     void open();
 
@@ -80,10 +81,15 @@ private slots:
 
     void on_pixelFillpushButton_clicked();
 
+    void on_offsetSpinBox_valueChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
 
     OpenFileDialog *openFileDialog;
+
+    void restoreBlob();
+    void backupBlob();
 
     void createActions();
     void createMenus();
@@ -104,12 +110,14 @@ private:
     void drawImage();
     QImage contrast(QImage& source, int factor);
     QImage brighten(QImage& source, int factor);
-    QByteArray convertToPGM(char* img_buffer, int size, int scale);
+    QByteArray convertToPGM(char* img_buffer, int scale);
     void setSizeImage();
     QBitArray toQBit (QByteArray blob);
 
     double scaleFactor;
 
+    int offset;
+    bool offsetonce;
     QLabel *imageArea;
     QString curFile;
     QString paletteFile;
@@ -125,6 +133,7 @@ private:
     bool isContrast;
     int bitFormat;
     QByteArray blob;
+    QByteArray blobBackup;
     QBitArray bitblob;
     QVector<QRgb> vectorColors;
 
