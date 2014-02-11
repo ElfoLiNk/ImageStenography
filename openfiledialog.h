@@ -18,7 +18,7 @@ public:
 signals:
     void setFileName(QString fileName);
     void setPaletteName(QString fileName);
-    void setOffset(int offset);
+    void setOffset(qint64 offset);
     void openFile();
     void fileBitFormat(int);
     
@@ -38,7 +38,7 @@ private:
 
     QString fileName;
     QString paletteName;
-    int offset;
+    qint64 offset;
 };
 
 #endif // OPENFILEDIALOG_H

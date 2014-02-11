@@ -33,7 +33,7 @@ protected:
 private slots:
     void setCurrentFile(const QString &fileName);
     void setPaletteFile(const QString &fileName);
-    void setOffset(int);
+    void setOffset(qint64);
     void setBitFormat(int bitformat);
     void open();
 
@@ -52,10 +52,6 @@ private slots:
     void on_actionUndo_triggered();
 
     void on_drawPushButton_clicked();
-
-    void on_heightSlider_valueChanged(int value);
-
-    void on_widthSlider_valueChanged(int value);
 
     void on_actionZoomIn_triggered();
 
@@ -81,7 +77,11 @@ private slots:
 
     void on_pixelFillpushButton_clicked();
 
-    void on_offsetSpinBox_valueChanged(int arg1);
+    void on_offsetSpinBox_valueChanged(int value);
+
+    void on_heightSlider_valueChanged(int value);
+
+    void on_widthSlider_valueChanged(int value);
 
 private:
     Ui::MainWindow *ui;
@@ -116,7 +116,8 @@ private:
 
     double scaleFactor;
 
-    int offset;
+
+    qint64 offset;
     bool offsetonce;
     QLabel *imageArea;
     QString curFile;
@@ -127,8 +128,9 @@ private:
     QVector<QImage> imageSnapshot;
     int valueContrast;
     int valueBrightness;
-    int height;
-    int width;
+    qint64 height;
+    qint64 width;
+    qint64 area;
     bool isBrightness;
     bool isContrast;
     int bitFormat;

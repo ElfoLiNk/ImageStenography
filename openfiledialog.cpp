@@ -13,6 +13,7 @@ OpenFileDialog::OpenFileDialog(QWidget *parent) :
     ui->setupUi(this);
     ui->buttonBox->setEnabled(false);
     setWindowTitle(tr("OpenBlob - ProgettoPiattaformeSW"));
+    offset = 0;
 }
 
 OpenFileDialog::~OpenFileDialog()
