@@ -25,7 +25,6 @@ public:
     ~MainWindow();
 
 protected:
-   //void paintEvent(QPaintEvent *e);
     void mousePressEvent(QMouseEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
     void mouseReleaseEvent(QMouseEvent *e);
@@ -74,8 +73,6 @@ private slots:
     void on_twentyfourBitButton_clicked();
 
     bool on_saveAreaButton_clicked();
-
-    void on_pixelFillpushButton_clicked();
 
     void on_offsetSpinBox_valueChanged(int value);
 
@@ -142,8 +139,6 @@ private:
     QRubberBand *rubberBand;
     QRect selectionRect;
     QPoint origin;
-    QColor colorPixFake;
-
 
 };
 
