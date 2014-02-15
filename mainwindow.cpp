@@ -1204,7 +1204,7 @@ void MainWindow::on_heightSlider_valueChanged(int value)
 
     if((height*width) > area)
     {
-        width = round(((double) area )/ height);
+        width = floor(((double) area )/ height);
         ui->widthSpinBox->setValue(width);
     }
 
@@ -1224,7 +1224,7 @@ void MainWindow::on_widthSlider_valueChanged(int value)
 
     if((height*width) > area)
     {
-        height = round(((double) area) / width);
+        height = floor(((double) area) / width);
         ui->heightSpinBox->setValue(height);
     }
 
