@@ -466,11 +466,11 @@ void MainWindow::setBitFormat(int bitformat)
  */
 void MainWindow::drawImage()
 {
-    // Restore file data to prevent unwanted settings overlay
-    restoreBlob();
 
     // Check and apply offset setting
     if(offset > 0 && offsetonce){
+        // Restore file data to prevent unwanted settings overlay
+        restoreBlob();
         blob.remove(0,offset);
         offsetonce = false;
         setSizeImage();
@@ -494,7 +494,7 @@ void MainWindow::drawImage()
             break;
         }
 
-            // 4Bit Image using PGM format
+        // 4Bit Image using PGM format
         case 4:
         {
             QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -522,7 +522,7 @@ void MainWindow::drawImage()
             break;
         }
 
-            // 8Bit Image using palette file or PGM format
+        // 8Bit Image using palette file or PGM format
         case 8:
         {
             QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -571,7 +571,7 @@ void MainWindow::drawImage()
             break;
         }
 
-            // 16Bit Image using Format_RGB444
+        // 16Bit Image using Format_RGB444
         case 16:
         {
             QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -587,34 +587,21 @@ void MainWindow::drawImage()
                 }
             }
 
-            for(int i = 0; i < blob.size()-1; i++)
+            for(int i = 0; i < blob.size()-1; i=i+2)
             {
-                uint trasparency = ((quint8)blob.at(i))>>4;
-                //uint scale = trasparency/16;
-                uint scale = trasparency;
-                uint red = blob.at(i)&0x0F;
-                uint green = ((quint8)blob.at(i+1))>>4;
-                uint blue = blob.at(i+1)&0x0F;
-                if(scale == 0)
-                {
-                    vectorColors.append(qRgb(red, green, blue));
-                }else
-                {
-                    vectorColors.append(qRgb(red*scale, green*scale, blue*scale));
-                }
+                int blue = ((quint8)blob.at(i))>>4;
+                int green= (quint8) blob.at(i)&0x0F;
+                int red = ((quint8)blob.at(i+1))>>4;
+                int alpha= (quint8) blob.at(i+1)&0x0F;
+
+                vectorColors.append(qRgba(red,green,blue,alpha));
             }
+
             int k = 0;
-            for(int i = 0;i< height;i++)
-            {
-                for(int j= 0; j< width;j++)
-                {
-                    image.setPixel(j,i,vectorColors.at(k));
+            for (int x = 0; x < height; ++x) {
+                for (int y = 0; y < width  ; ++y) {
+                    image.setPixel(width-y-1, x, vectorColors.at(vectorColors.size()-k-1));
                     k++;
-                    if(k>vectorColors.size())
-                    {
-                        imageArea->setPixmap(pixmap.fromImage(image));
-                        break;
-                    }
                 }
             }
 
@@ -630,7 +617,6 @@ void MainWindow::drawImage()
             QApplication::setOverrideCursor(Qt::WaitCursor);
 
             imageArea->resize(width,height);
-            image = QImage(width, height, QImage::Format_RGB888);
 
             // Check and add padding if necessary
             if(blob.size()%3 != 0){
@@ -639,25 +625,23 @@ void MainWindow::drawImage()
                     blob.append('0');
                 }
             }
-            for(int i = 0; i < blob.size() - 2; i++)
+            for(int i = 0; i < blob.size() - 2; i = i+3)
             {
                 vectorColors.append(qRgb(blob.at(i), blob.at(i+1), blob.at(i+2)));
             }
+
+            image = QImage(width, height, QImage::Format_RGB888);
+            image.fill(QColor(Qt::white).rgb());
+
             int k = 0;
-            for(int i = 0;i < height; i++)
-            {
-                for(int j = 0; j < width; j++)
-                {
-                    image.setPixel(j,i,vectorColors.at(k));
+            for (int x = 0; x < height; ++x) {
+                for (int y = 0; y < width  ; ++y) {
+                    image.setPixel(width-y-1, x, vectorColors.at(vectorColors.size()-k-1));
                     k++;
-                    if(k>vectorColors.size())
-                    {
-                        imageArea->setPixmap(pixmap.fromImage(image));
-                        break;
-                    }
                 }
             }
-            imageArea->setPixmap(pixmap.fromImage(image));
+
+            imageArea->setPixmap(QPixmap::fromImage(image));
 
             QApplication::restoreOverrideCursor();
             break;
@@ -1223,6 +1207,8 @@ void MainWindow::on_heightSlider_valueChanged(int value)
         width = round(((double) area )/ height);
         ui->widthSpinBox->setValue(width);
     }
+
+    ui->heightSpinBox->setValue(height);
 }
 
 /**
@@ -1241,6 +1227,8 @@ void MainWindow::on_widthSlider_valueChanged(int value)
         height = round(((double) area) / width);
         ui->heightSpinBox->setValue(height);
     }
+
+    ui->widthSpinBox->setValue(width);
 }
 
 // Overriding QBitmap::fromData
