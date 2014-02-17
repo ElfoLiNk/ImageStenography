@@ -18,7 +18,7 @@ List of packages required for running and/or building
 ## Installing prerequisites
 Software dependences can be installed as root  in a opened console by running this command:
 ```
-apt-get install libqt5 libqt5-dev 
+apt-get install build-essential libqt5 libqt5-dev git
 ```
 
 # Build
