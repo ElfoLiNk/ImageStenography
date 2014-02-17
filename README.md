@@ -7,21 +7,21 @@ List of packages required for running and/or building
 
 ## Required
 ### Runtime
-* Qt 5 or above 
+* Qt 5.1 or above 
 
 ### Build
 * build-essential
-* Qt5 devel
+* Qt5.1 devel
 * git
 
 
 ## Installing prerequisites
 Software dependences can be installed as root  in a opened console by running this command:
 ```
-apt-get install build-essential libqt5 libqt5-dev git
+apt-get install build-essential qt5-default git
 ```
 
-Note: At the moment there is not yet, in Debian Stable repository, Qt5 so you need to download it from official Qt-Project site:
+Note: At the moment there is not yet, in Debian Stable repository, Qt5 so you need to download it from official Qt-Project's site:
 ```
 wget http://download.qt-project.org/official_releases/qt/5.2/5.2.1/qt-opensource-linux-x64-5.2.1.run
 chmod +x qt-opensource-linux-x64-5.2.1.run
