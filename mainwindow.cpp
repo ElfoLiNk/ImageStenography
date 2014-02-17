@@ -486,7 +486,7 @@ void MainWindow::drawImage()
             QApplication::setOverrideCursor(Qt::WaitCursor);
 
             imageArea->resize(width,height);
-            bitmap = bitmap.fromData(QSize(width,height), (const uchar*) toQBit(blob).data_ptr(),QImage::Format_Mono);
+            bitmap = bitmap.fromData(QSize(width,height), (const uchar*) blob.data(),QImage::Format_Mono);
             imageArea->setPixmap(bitmap);
             image = bitmap.toImage();
 
