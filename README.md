@@ -21,6 +21,15 @@ Software dependences can be installed as root  in a opened console by running th
 apt-get install build-essential libqt5 libqt5-dev git
 ```
 
+Note: At the moment there is not yet, in Debian Stable repository, Qt5 so you need to download it from official Qt-Project site:
+```
+wget http://download.qt-project.org/official_releases/qt/5.2/5.2.1/qt-opensource-linux-x64-5.2.1.run
+chmod +x qt-opensource-linux-x64-5.2.1.run
+./qt-opensource-linux-x64-5.2.1.run
+PATH=$HOME/Qt5.2.1/5.2.1/gcc_64/bin:$PATH
+export PATH
+```
+
 # Build
 ## Build any distribution
 
