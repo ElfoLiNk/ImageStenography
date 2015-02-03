@@ -13,14 +13,16 @@ addons:
       description: "Build submitted via Travis CI"
     notification_email: matteo_gazzetta@hotmail.it
     build_command_prepend: "qmake"
-    build_command:   "make -j 4"
-    branch_pattern: coverity_scan
+    build_command:   "make -j4"
+    branch_pattern: master
+ 
  
 before_install:
     - sudo add-apt-repository --yes ppa:beineri/opt-qt54
     - sudo apt-get update
     - sudo apt-get install -y qt54base qt54declarative qt54webengine qt54multimedia qt54imageformats
     - source /opt/qt54/bin/qt54-env.sh
+
 script:
     - qmake -v
     - qmake
