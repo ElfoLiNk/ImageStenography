@@ -13,7 +13,7 @@ addons:
     build_command_prepend: "qmake"
     build_command:   "make -j 4"
     branch_pattern: coverity_scan
-	
+ 
 before_install:
     - sudo add-apt-repository --yes ppa:beineri/opt-qt54-trusty
     - sudo apt-get update -qq
