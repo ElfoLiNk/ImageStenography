@@ -9,7 +9,7 @@ env:
 addons:
   coverity_scan:
     project:
-      name: "ElfoLiNk/ProgettoPiattaformeSW"
+      name: "ElfoLiNk/ImageStenography"
       description: "Build submitted via Travis CI"
     notification_email: matteo_gazzetta@hotmail.it
     build_command_prepend: "qmake"

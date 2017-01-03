@@ -1,4 +1,4 @@
-ProgettoPiattaformeSW
+ImageStenography
 =====================
 
 
@@ -37,13 +37,13 @@ Make sure that you have installed the needed dependencies for your distribution 
 
 
 ```
-git clone https://github.com/ElfoLiNk/ProgettoPiattaformeSW.git
-cd ProgettoPiattaformeSW
+git clone https://github.com/ElfoLiNk/ImageStenography.git
+cd ImageStenography
 ```
 
 Now you may able to build the application:
 ```
-qmake ProgettoPiattaformeSW.pro
+qmake ImageStenography.pro
 make
 ```
 
@@ -52,6 +52,6 @@ make
 ## Any distribution install (after build any distribution)
 Make sure that you have build. And run as root:
 ```
-cd ProgettoPiattaformeSW
+cd ImageStenography
 make install
 ```
