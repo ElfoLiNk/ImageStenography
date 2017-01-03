@@ -1,4 +1,18 @@
-language: cpp
+sudo: required
+dist: trusty
+
+before_install:
+  - sudo add-apt-repository --yes ppa:beineri/opt-qt57-trusty
+  - sudo apt-get update -qq
+
+install:
+  - sudo apt-get -y install qt57base qt57declarative qt57webengine qt57multimedia qt57imageformats
+
+script:
+  - source /opt/qt57/bin/qt57-env.sh
+  - /opt/qt57/bin/qmake
+  - make
+
 
 env:
   global:
@@ -15,15 +29,5 @@ addons:
     build_command_prepend: "qmake"
     build_command:   "make -j4"
     branch_pattern: master
- 
- 
-before_install:
-    - sudo add-apt-repository --yes ppa:beineri/opt-qt54
-    - sudo apt-get update
-    - sudo apt-get install -y qt54base qt54declarative qt54webengine qt54multimedia qt54imageformats
-    - source /opt/qt54/bin/qt54-env.sh
 
-script:
-    - qmake -v
-    - qmake
-    - make
+	
